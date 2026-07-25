@@ -48,6 +48,7 @@
     "react-grid-layout": "^2.2.3",
     "react-hook-form": "^7.82.0",
     "react-phone-number-input": "^3.4.17",
+    "react-resizable": "^4.0.2",
     "recharts": "^3.10.0",
     "server-only": "^0.0.1",
     "shadcn": "^4.14.1",
