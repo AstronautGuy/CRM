@@ -18,6 +18,7 @@ import { useEffect } from "react";
 import { ResponsiveGridLayout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+import { defaultWidgets } from "~/store/dashboard-store";
 
 function KPICard({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) {
   return (
@@ -180,7 +181,11 @@ export default function DashboardPage() {
         {activeWidgets.length > 0 ? (
           <ResponsiveGridLayout
             className="layout"
-            layouts={{ lg: activeWidgets.map(w => w.layout) }}
+            layouts={{ 
+              lg: activeWidgets
+                .map(w => w.layout || defaultWidgets.find(dw => dw.id === w.id)?.layout)
+                .filter(Boolean) 
+            }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={30}
