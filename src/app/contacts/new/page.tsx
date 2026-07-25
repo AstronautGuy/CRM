@@ -62,7 +62,10 @@ const contactSchema = z.object({
   addressStreet: z.string().optional(),
   addressState: z.string().optional(),
   addressCity: z.string().optional(),
-  addressPincode: z.string().optional(),
+  addressPincode: z.union([
+    z.literal(""),
+    z.string().regex(/^\d+$/, "Pincode must contain only numbers")
+  ]).optional(),
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;

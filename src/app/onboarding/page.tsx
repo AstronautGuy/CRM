@@ -43,7 +43,7 @@ const onboardingSchema = z.object({
   addressStreet: z.string().min(5, "Street address must be at least 5 characters"),
   addressState: z.string().min(1, "State is required"),
   addressCity: z.string().min(1, "City is required"),
-  addressPincode: z.string().min(3, "Pincode is required"),
+  addressPincode: z.string().regex(/^\d+$/, "Pincode must contain only numbers").min(3, "Pincode is required"),
 });
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
