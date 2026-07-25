@@ -490,7 +490,16 @@ export default function NewContactPage() {
                   <FormField control={form.control as any} name="addressPincode" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Pincode / Zip</FormLabel>
-                      <FormControl><Input className="bg-slate-950 border-slate-800" {...field} /></FormControl>
+                      <FormControl>
+                        <Input 
+                          className="bg-slate-950 border-slate-800" 
+                          {...field} 
+                          onChange={(e) => {
+                            e.target.value = e.target.value.replace(/\D/g, "");
+                            field.onChange(e);
+                          }}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
