@@ -1,5 +1,6 @@
+require('dotenv').config();
 const postgres = require('postgres');
-const sql = postgres('postgresql://neondb_owner:npg_Dvx5KZBSXT0d@ep-bitter-darkness-azznf1fc-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+const sql = postgres(process.env.DATABASE_URL);
 
 async function run() {
   try {
