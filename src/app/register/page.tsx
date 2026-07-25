@@ -31,8 +31,9 @@ export default function RegisterPage() {
 
       if (res?.error) {
         router.push("/login"); // Fallback to login
-      } else {
-        router.push("/pipeline");
+      }
+      if (res?.ok) {
+        router.push("/dashboard");
         router.refresh();
       }
     },
@@ -40,6 +41,10 @@ export default function RegisterPage() {
       setError(e.message || "An error occurred during registration.");
     },
   });
+
+  const handleOAuthRegister = (provider: string) => {
+    signIn(provider, { callbackUrl: "/dashboard" });
+  };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();

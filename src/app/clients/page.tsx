@@ -13,41 +13,20 @@ import { Label } from "~/components/ui/label";
 import { Users, Loader2 } from "lucide-react";
 
 export default function ContactsPage() {
-  const { data: contacts, isLoading, refetch } = api.crm.getContacts.useQuery();
-  const createContact = api.crm.createContact.useMutation({
-    onSuccess: () => {
-      refetch();
-      setModalOpen(false);
-    }
-  });
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    jobTitle: "",
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createContact.mutate({
-      ...formData,
-    });
-  };
+  const { data: companies, isLoading, refetch } = api.crm.getCompanies.useQuery();
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Contacts & Leads</h2>
-            <p className="text-slate-400 text-sm">Manage organization leads, customer contacts, and qualification status.</p>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Clients</h2>
+            <p className="text-slate-400 text-sm">Manage organization leads, customer accounts, and qualification status.</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline">Import CSV</Button>
             <Button asChild>
-              <Link href="/contacts/new">+ Add Contact</Link>
+              <Link href="/clients/new">+ Add Client</Link>
             </Button>
           </div>
         </div>
@@ -59,24 +38,24 @@ export default function ContactsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>All Contacts</CardTitle>
+            <CardTitle>All Clients</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
               </div>
-            ) : contacts?.length === 0 ? (
+            ) : companies?.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
                 <div className="bg-slate-900 h-16 w-16 rounded-full flex items-center justify-center mb-4">
                   <Users className="h-8 w-8 text-slate-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">No contacts found</h3>
+                <h3 className="text-xl font-bold text-white mb-2">No companies found</h3>
                 <p className="text-slate-400 max-w-sm mb-6">
-                  Your customer database is currently empty. Add your first contact to start building your CRM.
+                  Your customer database is currently empty. Add your first company to start building your CRM.
                 </p>
                 <Button asChild>
-                  <Link href="/contacts/new">Add Your First Contact</Link>
+                  <Link href="/clients/new">Add Your First Client</Link>
                 </Button>
               </div>
             ) : (
@@ -84,26 +63,22 @@ export default function ContactsPage() {
                 <table className="w-full text-left text-sm text-slate-300">
                   <thead className="border-b border-slate-800 text-xs text-slate-400 uppercase bg-slate-950/50">
                     <tr>
-                      <th className="p-3">Name</th>
-                      <th className="p-3">Email</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Job Title</th>
+                      <th className="p-3">Company Name</th>
+                      <th className="p-3">Industry</th>
+                      <th className="p-3">Country</th>
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {contacts?.map((contact) => (
-                      <tr key={contact.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
-                        <td className="p-3 font-medium text-white">{contact.firstName} {contact.lastName}</td>
-                        <td className="p-3">{contact.email}</td>
-                        <td className="p-3">
-                          <Badge variant={contact.status === "QUALIFIED" ? "success" : "secondary"}>
-                            {contact.status}
-                          </Badge>
-                        </td>
-                        <td className="p-3">{contact.jobTitle || "-"}</td>
+                    {companies?.map((company) => (
+                      <tr key={company.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
+                        <td className="p-3 font-medium text-white">{company.name}</td>
+                        <td className="p-3">{company.industry || "-"}</td>
+                        <td className="p-3">{company.country || "-"}</td>
                         <td className="p-3 text-right">
-                          <Button size="sm" variant="ghost">View Profile</Button>
+                          <Button size="sm" variant="ghost" asChild>
+                            <Link href={`/clients/${company.id}`}>View Profile</Link>
+                          </Button>
                         </td>
                       </tr>
                     ))}

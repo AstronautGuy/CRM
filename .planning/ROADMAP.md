@@ -42,3 +42,8 @@
 - [ ] **Phase 8: Billing & CRM UX Enhancements**
   - Add highly visible "Create Quote" and "Create Invoice" modals/buttons
   - Streamline the Customer Database (`/contacts`) for easier data entry
+
+- [ ] **Phase 9: Quotation Builder Layout**
+  - Advanced Live Document UI for Quotes
+  - Dynamic Line Items and Pricing Calculator
+  - Signature and T&C integration

@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTableCreator,
   primaryKey,
@@ -93,6 +94,7 @@ export const organizations = createTable("organization", (d) => ({
   addressStreet: d.text(),
   addressCity: d.varchar({ length: 100 }),
   addressState: d.varchar({ length: 100 }),
+  addressCountry: d.varchar({ length: 100 }),
   addressPincode: d.varchar({ length: 20 }),
 
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
@@ -141,6 +143,7 @@ export const companies = createTable("company", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: d.varchar({ length: 255 }).notNull(),
+  logoUrl: d.text(),
   domain: d.varchar({ length: 255 }),
   industry: d.varchar({ length: 100 }),
   employeeCount: d.integer(), // Keeping for backwards compat
@@ -157,8 +160,24 @@ export const companies = createTable("company", (d) => ({
   addressStreet: d.text(),
   addressCity: d.varchar({ length: 100 }),
   addressState: d.varchar({ length: 100 }),
+  addressCountry: d.varchar({ length: 100 }),
   addressPincode: d.varchar({ length: 20 }),
   address: d.text(), // legacy
+  
+  // New Complex Contact Fields
+  clientType: d.varchar({ length: 50 }),
+  taxTreatment: d.varchar({ length: 50 }),
+  extraIds: d.jsonb().default([]), // array of strings or objects
+  shippingDetails: d.jsonb().default([]),
+  alias: d.varchar({ length: 255 }),
+  uid: d.varchar({ length: 100 }),
+  email: d.varchar({ length: 255 }),
+  showEmailInInvoice: d.boolean().default(false).notNull(),
+  showPhoneInInvoice: d.boolean().default(false).notNull(),
+  paymentDueDays: d.integer(),
+  customFields: d.jsonb().default([]),
+  attachments: d.jsonb().default([]),
+  
   assignedUserId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: "set null" }),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
@@ -167,14 +186,38 @@ export const companies = createTable("company", (d) => ({
 export const contacts = createTable("contact", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  companyId: d.varchar({ length: 255 }).references(() => companies.id, { onDelete: "set null" }),
+  companyId: d.varchar({ length: 255 }).references(() => companies.id, { onDelete: "set null" }), // Linked client/company
+  uid: d.varchar({ length: 100 }), // Auto-generated ID
+  
+  // Basic Info
+  avatarUrl: d.text(),
+  salutation: d.varchar({ length: 20 }), // Mr, Mrs, Dr, etc.
   firstName: d.varchar({ length: 100 }).notNull(),
-  lastName: d.varchar({ length: 100 }).notNull(),
-  email: d.varchar({ length: 255 }).notNull(),
-  phone: d.varchar({ length: 50 }),
-  jobTitle: d.varchar({ length: 100 }),
-  status: leadStatusEnum("status").default("NEW").notNull(),
-  assignedUserId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: "set null" }),
+  lastName: d.varchar({ length: 100 }),
+  
+  // Contact Methods
+  email: d.varchar({ length: 255 }), // Primary email
+  phone: d.varchar({ length: 50 }), // Primary phone
+  additionalEmails: d.jsonb().default([]), // Array of emails
+  additionalPhones: d.jsonb().default([]), // Array of phones
+  
+  // Tax Info
+  pan: d.varchar({ length: 50 }),
+  aadhaar: d.varchar({ length: 50 }),
+  passport: d.varchar({ length: 50 }),
+  
+  // Social Profiles
+  socialLinks: d.jsonb().default({}), // Object with fb, linkedin, twitter, etc.
+  
+  // Address
+  addressCountry: d.varchar({ length: 100 }),
+  addressState: d.varchar({ length: 100 }),
+  addressDistrict: d.varchar({ length: 100 }),
+  addressCity: d.varchar({ length: 100 }),
+  addressBuilding: d.varchar({ length: 255 }),
+  addressStreet: d.text(),
+  addressZip: d.varchar({ length: 20 }),
+  
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
@@ -186,19 +229,9 @@ export const tags = createTable("tag", (d) => ({
   color: d.varchar({ length: 20 }).default("#3b82f6").notNull(),
 }));
 
-export const contactTags = createTable(
-  "contact_tag",
-  (d) => ({
-    contactId: d.varchar({ length: 255 }).notNull().references(() => contacts.id, { onDelete: "cascade" }),
-    tagId: d.varchar({ length: 255 }).notNull().references(() => tags.id, { onDelete: "cascade" }),
-  }),
-  (t) => [primaryKey({ columns: [t.contactId, t.tagId] })]
-);
-
 export const activityNotes = createTable("activity_note", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  contactId: d.varchar({ length: 255 }).references(() => contacts.id, { onDelete: "cascade" }),
   companyId: d.varchar({ length: 255 }).references(() => companies.id, { onDelete: "cascade" }),
   authorId: d.varchar({ length: 255 }).notNull().references(() => users.id),
   type: d.varchar({ length: 50 }).default("NOTE").notNull(), // NOTE, CALL, EMAIL, MEETING
@@ -209,7 +242,6 @@ export const activityNotes = createTable("activity_note", (d) => ({
 export const assignmentHistory = createTable("assignment_history", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  contactId: d.varchar({ length: 255 }).references(() => contacts.id, { onDelete: "cascade" }),
   companyId: d.varchar({ length: 255 }).references(() => companies.id, { onDelete: "cascade" }),
   assignedByUserId: d.varchar({ length: 255 }).notNull().references(() => users.id),
   assignedToUserId: d.varchar({ length: 255 }).notNull().references(() => users.id),
@@ -242,7 +274,6 @@ export const deals = createTable("deal", (d) => ({
   title: d.varchar({ length: 255 }).notNull(),
   value: d.integer().default(0).notNull(),
   expectedCloseDate: d.timestamp({ withTimezone: true }),
-  contactId: d.varchar({ length: 255 }).references(() => contacts.id, { onDelete: "set null" }),
   companyId: d.varchar({ length: 255 }).references(() => companies.id, { onDelete: "set null" }),
   assignedUserId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: "set null" }),
   orderIndex: d.integer().default(0).notNull(),
@@ -253,15 +284,37 @@ export const deals = createTable("deal", (d) => ({
 export const invoiceStatusEnum = pgEnum("devcrm_invoice_status", ["DRAFT", "SENT", "PAID", "OVERDUE", "CANCELLED"]);
 
 // --- PRODUCTS & INVENTORY ---
+export const productTypeEnum = pgEnum("devcrm_product_type", ["PRODUCT", "SERVICE"]);
+
 export const products = createTable("product", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: d.varchar({ length: 255 }).notNull(),
-  sku: d.varchar({ length: 100 }).notNull(),
+  sku: d.varchar({ length: 100 }),
+  type: productTypeEnum("type").default("PRODUCT").notNull(),
   description: d.text(),
   unitPrice: d.integer().notNull(), // in cents
+  unit: d.varchar({ length: 50 }),
   stockQuantity: d.integer().default(0).notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+}));
+
+// --- SETTINGS ---
+export const userSettings = createTable("user_settings", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: d.varchar({ length: 255 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  defaultCurrency: d.varchar({ length: 10 }).default("INR").notNull(),
+  customCurrencySymbol: d.varchar({ length: 10 }),
+  numberFormat: d.varchar({ length: 50 }).default("en-IN").notNull(),
+  decimalDigits: d.integer().default(2).notNull(),
+  roundQuantity: d.boolean().default(false).notNull(),
+  roundRate: d.boolean().default(false).notNull(),
+  customLabels: d.jsonb(),
+  signatureImage: d.text(),
+  tncList: d.jsonb(),
+  createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
 
 // --- QUOTES & INVOICES ---
@@ -269,21 +322,37 @@ export const quotes = createTable("quote", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   companyId: d.varchar({ length: 255 }).references(() => companies.id),
-  contactId: d.varchar({ length: 255 }).references(() => contacts.id),
-  title: d.varchar({ length: 255 }).notNull(),
-  discountPercent: d.integer().default(0).notNull(),
+  quoteNumber: d.varchar({ length: 100 }).notNull(),
+  title: d.varchar({ length: 255 }),
+  date: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+  dueDate: d.timestamp({ mode: "date", withTimezone: true }),
+  
+  // Customizations
+  labels: d.jsonb(),
+  customFields: d.jsonb(),
+  showTotalInPdf: d.boolean().default(true).notNull(),
+  showTotalInWords: d.boolean().default(false).notNull(),
+  
+  // Pricing & Items
+  lineItems: d.jsonb(), // Stores the array of items to allow ad-hoc text & rich descriptions
   taxPercent: d.integer().default(0).notNull(),
+  discountType: d.varchar({ length: 20 }).default("AMOUNT").notNull(), // AMOUNT or PERCENT
+  discountValue: d.integer().default(0).notNull(), // in cents if AMOUNT, percent if PERCENT
+  additionalCharges: d.jsonb(),
   totalAmount: d.integer().default(0).notNull(),
+  
+  // Footer & Extras
+  signatureType: d.varchar({ length: 50 }).default("IMAGE").notNull(),
+  signatureName: d.varchar({ length: 255 }),
+  signatureData: d.text(), // Image URL or Base64
+  notes: d.text(),
+  attachments: d.jsonb(),
+  terms: d.jsonb(), // Ordered list
+  contactEmail: d.varchar({ length: 255 }),
+  contactPhone: d.varchar({ length: 50 }),
+  
   status: d.varchar({ length: 50 }).default("DRAFT").notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
-}));
-
-export const quoteItems = createTable("quote_item", (d) => ({
-  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
-  quoteId: d.varchar({ length: 255 }).notNull().references(() => quotes.id, { onDelete: "cascade" }),
-  productId: d.varchar({ length: 255 }).notNull().references(() => products.id),
-  quantity: d.integer().default(1).notNull(),
-  unitPrice: d.integer().notNull(),
 }));
 
 export const invoices = createTable("invoice", (d) => ({
@@ -291,7 +360,6 @@ export const invoices = createTable("invoice", (d) => ({
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   quoteId: d.varchar({ length: 255 }).references(() => quotes.id),
   companyId: d.varchar({ length: 255 }).references(() => companies.id),
-  contactId: d.varchar({ length: 255 }).references(() => contacts.id),
   invoiceNumber: d.varchar({ length: 100 }).notNull().unique(),
   status: invoiceStatusEnum("status").default("DRAFT").notNull(),
   subtotal: d.integer().notNull(),
@@ -321,7 +389,6 @@ export const adCampaigns = createTable("ad_campaign", (d) => ({
 export const crmTasks = createTable("crm_task", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  contactId: d.varchar({ length: 255 }).references(() => contacts.id, { onDelete: "set null" }),
   dealId: d.varchar({ length: 255 }).references(() => deals.id, { onDelete: "set null" }),
   assignedUserId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: "set null" }),
   title: d.varchar({ length: 255 }).notNull(),

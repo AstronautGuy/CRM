@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
-import { contacts } from "~/server/db/schema";
+import { companies } from "~/server/db/schema";
 
 export async function POST(req: Request) {
   try {
@@ -12,15 +12,14 @@ export async function POST(req: Request) {
     }
 
     const [lead] = await db
-      .insert(contacts)
+      .insert(companies)
       .values({
         organizationId,
-        firstName,
-        lastName,
+        name: `${firstName} ${lastName}`.trim(),
         email,
         phone: phone || null,
-        jobTitle: jobTitle || null,
-        status: "NEW",
+        clientType: "INDIVIDUAL",
+        taxTreatment: "CONSUMER",
       })
       .returning();
 

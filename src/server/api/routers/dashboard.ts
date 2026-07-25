@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { contacts, deals, invoices, crmTasks, pipelineStages, organizationMembers } from "~/server/db/schema";
+import { companies, deals, invoices, crmTasks, pipelineStages, organizationMembers } from "~/server/db/schema";
 import { eq, inArray, and, not, sql } from "drizzle-orm";
 
 export const dashboardRouter = createTRPCRouter({
@@ -15,9 +15,9 @@ export const dashboardRouter = createTRPCRouter({
     }
 
     const [contactsCount] = await ctx.db
-      .select({ count: sql<number>`cast(count(${contacts.id}) as integer)` })
-      .from(contacts)
-      .where(eq(contacts.organizationId, organizationId));
+      .select({ count: sql<number>`cast(count(${companies.id}) as integer)` })
+      .from(companies)
+      .where(eq(companies.organizationId, organizationId));
 
     const [invoicesCount] = await ctx.db
       .select({ count: sql<number>`cast(count(${invoices.id}) as integer)` })

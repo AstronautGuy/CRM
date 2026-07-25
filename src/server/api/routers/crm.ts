@@ -1,39 +1,57 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { activityNotes, assignmentHistory, companies, contacts, tags, organizationMembers } from "~/server/db/schema";
-import { eq, desc, and } from "drizzle-orm";
-
+import { activityNotes, assignmentHistory, companies, tags, organizationMembers, contacts } from "~/server/db/schema";
+import { eq, desc, and, ilike, sql } from "drizzle-orm";
 export const crmRouter = createTRPCRouter({
-  // Contacts Procedures
+  // Contacts / POC Procedures
   getContacts: protectedProcedure
-    .input(
-      z.object({
-        status: z.enum(["NEW", "QUALIFIED", "CONTACTED", "NURTURING", "UNQUALIFIED"]).optional(),
-      }).optional()
-    )
+    .query(async ({ ctx }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      return ctx.db.select().from(contacts).where(eq(contacts.organizationId, member.organizationId)).orderBy(desc(contacts.createdAt));
+    }),
+
+  getPOCsByCompanyId: protectedProcedure
+    .input(z.object({ companyId: z.string() }))
     .query(async ({ ctx, input }) => {
       const member = await ctx.db.query.organizationMembers.findFirst({
         where: eq(organizationMembers.userId, ctx.session.user.id),
       });
       if (!member?.organizationId) throw new Error("Unauthorized");
 
-      const conditions = [eq(contacts.organizationId, member.organizationId)];
-      if (input?.status) {
-        conditions.push(eq(contacts.status, input.status));
-      }
-      return ctx.db.select().from(contacts).where(and(...conditions)).orderBy(desc(contacts.createdAt));
+      return ctx.db.select().from(contacts).where(
+        and(
+          eq(contacts.organizationId, member.organizationId),
+          eq(contacts.companyId, input.companyId)
+        )
+      ).orderBy(desc(contacts.createdAt));
     }),
 
   createContact: protectedProcedure
     .input(
       z.object({
         companyId: z.string().optional(),
+        salutation: z.string().optional(),
         firstName: z.string().min(1),
-        lastName: z.string().min(1),
-        email: z.string().email(),
+        lastName: z.string().optional(),
+        email: z.string().email().optional().or(z.literal("")),
         phone: z.string().optional(),
-        jobTitle: z.string().optional(),
-        status: z.enum(["NEW", "QUALIFIED", "CONTACTED", "NURTURING", "UNQUALIFIED"]).default("NEW"),
+        additionalEmails: z.any().optional(),
+        additionalPhones: z.any().optional(),
+        pan: z.string().optional(),
+        aadhaar: z.string().optional(),
+        passport: z.string().optional(),
+        socialLinks: z.any().optional(),
+        addressCountry: z.string().optional(),
+        addressState: z.string().optional(),
+        addressDistrict: z.string().optional(),
+        addressCity: z.string().optional(),
+        addressBuilding: z.string().optional(),
+        addressStreet: z.string().optional(),
+        addressZip: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -42,11 +60,20 @@ export const crmRouter = createTRPCRouter({
       });
       if (!member?.organizationId) throw new Error("Unauthorized");
 
-      const [contact] = await ctx.db.insert(contacts).values({ ...input, organizationId: member.organizationId }).returning();
+      // Auto-generate a simple UID
+      const countResult = await ctx.db.select({ count: sql<number>`count(*)` }).from(contacts).where(eq(contacts.organizationId, member.organizationId));
+      const count = Number(countResult[0]?.count || 0) + 1;
+      const uid = `POC-${String(count).padStart(4, '0')}`;
+
+      const [contact] = await ctx.db.insert(contacts).values({ 
+        ...input, 
+        organizationId: member.organizationId,
+        uid 
+      }).returning();
+      
       return contact;
     }),
 
-  // Companies Procedures
   getCompanies: protectedProcedure
     .query(async ({ ctx }) => {
       const member = await ctx.db.query.organizationMembers.findFirst({
@@ -57,10 +84,58 @@ export const crmRouter = createTRPCRouter({
       return ctx.db.select().from(companies).where(eq(companies.organizationId, member.organizationId)).orderBy(desc(companies.createdAt));
     }),
 
+  getCompanyByName: protectedProcedure
+    .input(z.object({ name: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      if (!input.name || input.name.trim() === "") return null;
+
+      const [company] = await ctx.db
+        .select()
+        .from(companies)
+        .where(
+          and(
+            eq(companies.organizationId, member.organizationId),
+            // case-insensitive match
+            ilike(companies.name, input.name.trim())
+          )
+        )
+        .limit(1);
+      
+      return company || null;
+    }),
+
+  getCompanyById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      const [company] = await ctx.db
+        .select()
+        .from(companies)
+        .where(
+          and(
+            eq(companies.organizationId, member.organizationId),
+            eq(companies.id, input.id)
+          )
+        )
+        .limit(1);
+
+      return company || null;
+    }),
+
   createCompany: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1),
+        logoUrl: z.string().optional(),
         domain: z.string().optional(),
         industry: z.string().optional(),
         employeeCount: z.number().optional(),
@@ -77,8 +152,21 @@ export const crmRouter = createTRPCRouter({
         addressStreet: z.string().optional(),
         addressCity: z.string().optional(),
         addressState: z.string().optional(),
+        addressCountry: z.string().optional(),
         addressPincode: z.string().optional(),
         address: z.string().optional(),
+        clientType: z.string().optional(),
+        taxTreatment: z.string().optional(),
+        extraIds: z.any().optional(),
+        shippingDetails: z.any().optional(),
+        alias: z.string().optional(),
+        uid: z.string().optional(),
+        email: z.string().optional(),
+        showEmailInInvoice: z.boolean().default(false),
+        showPhoneInInvoice: z.boolean().default(false),
+        paymentDueDays: z.number().optional(),
+        customFields: z.any().optional(),
+        attachments: z.any().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -93,7 +181,7 @@ export const crmRouter = createTRPCRouter({
 
   // Activity Notes Procedures
   getActivityNotes: protectedProcedure
-    .input(z.object({ contactId: z.string().optional() }).optional())
+    .input(z.object({ companyId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const member = await ctx.db.query.organizationMembers.findFirst({
         where: eq(organizationMembers.userId, ctx.session.user.id),
@@ -101,8 +189,8 @@ export const crmRouter = createTRPCRouter({
       if (!member?.organizationId) throw new Error("Unauthorized");
 
       const conditions = [eq(activityNotes.organizationId, member.organizationId)];
-      if (input?.contactId) {
-        conditions.push(eq(activityNotes.contactId, input.contactId));
+      if (input?.companyId) {
+        conditions.push(eq(activityNotes.companyId, input.companyId));
       }
       return ctx.db.select().from(activityNotes).where(and(...conditions)).orderBy(desc(activityNotes.createdAt));
     }),
@@ -110,7 +198,6 @@ export const crmRouter = createTRPCRouter({
   addActivityNote: protectedProcedure
     .input(
       z.object({
-        contactId: z.string().optional(),
         companyId: z.string().optional(),
         type: z.string().default("NOTE"),
         content: z.string().min(1),

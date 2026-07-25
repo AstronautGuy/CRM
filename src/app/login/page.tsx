@@ -30,13 +30,13 @@ export default function LoginPage() {
       setError("Invalid credentials. Please try again.");
       setLoading(false);
     } else {
-      router.push("/pipeline");
+      router.push("/dashboard");
       router.refresh();
     }
   };
 
   const handleOAuthLogin = (provider: string) => {
-    signIn(provider, { callbackUrl: "/pipeline" });
+    signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
