@@ -15,15 +15,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Badge } from "~/components/ui/badge";
 import { useEffect } from "react";
+import { ResponsiveGridLayout } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
 function KPICard({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card className="h-full flex flex-col group relative">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 cursor-move border-b border-transparent group-hover:border-slate-800 transition-colors">
         <CardTitle className="text-sm font-medium text-slate-400">{title}</CardTitle>
         <Icon className="h-4 w-4 text-slate-500" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <div className="text-2xl font-bold text-white">{value}</div>
       </CardContent>
     </Card>
@@ -35,7 +38,7 @@ export default function DashboardPage() {
   const { data: activity } = api.dashboard.getRecentActivity.useQuery();
   const { data: onboardingStatus, isLoading: onboardingLoading } = api.onboarding.getStatus.useQuery();
   
-  const { widgets, toggleWidget, reorderWidgets, resetLayout } = useDashboardStore();
+  const { widgets, toggleWidget, updateLayout, resetLayout } = useDashboardStore();
 
   useEffect(() => {
     if (!onboardingLoading && onboardingStatus?.onboardingComplete === false) {
@@ -71,11 +74,11 @@ export default function DashboardPage() {
           { name: "Negotiation", value: 100 },
         ];
         return (
-          <Card className="col-span-full md:col-span-2 h-96">
-            <CardHeader>
+          <Card className="h-full flex flex-col">
+            <CardHeader className="cursor-move border-b border-slate-800 pb-2 mb-4">
               <CardTitle>Pipeline Overview</CardTitle>
             </CardHeader>
-            <CardContent className="h-72">
+            <CardContent className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
@@ -89,11 +92,11 @@ export default function DashboardPage() {
         );
       case "table-activity":
         return (
-          <Card className="col-span-full md:col-span-2">
-            <CardHeader>
+          <Card className="h-full flex flex-col">
+            <CardHeader className="cursor-move border-b border-slate-800 pb-2 mb-4">
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 min-h-0 overflow-auto">
               {activity?.length === 0 ? (
                 <p className="text-sm text-slate-500">No recent activity.</p>
               ) : (
@@ -162,12 +165,6 @@ export default function DashboardPage() {
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" onClick={() => toggleWidget(widget.id)}>
                       {widget.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" disabled={index === 0} onClick={() => reorderWidgets(index, index - 1)}>
-                      <ArrowUp className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" disabled={index === widgets.length - 1} onClick={() => reorderWidgets(index, index + 1)}>
-                      <ArrowDown className="h-3 w-3" />
-                    </Button>
                   </div>
                 </div>
               ))}
@@ -179,22 +176,27 @@ export default function DashboardPage() {
         </Popover>
       </div>
 
-      <div className="space-y-6">
-        {/* KPI Grid */}
-        {kpiWidgets.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {kpiWidgets.map(w => (
-              <React.Fragment key={w.id}>{renderWidget(w.id)}</React.Fragment>
+      <div className="min-h-[600px]">
+        {activeWidgets.length > 0 ? (
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={{ lg: activeWidgets.map(w => w.layout) }}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+            rowHeight={30}
+            onLayoutChange={(layout: any) => updateLayout(layout)}
+            margin={[16, 16]}
+            {...( { draggableHandle: ".cursor-move" } as any )}
+          >
+            {activeWidgets.map((w) => (
+              <div key={w.id}>
+                {renderWidget(w.id)}
+              </div>
             ))}
-          </div>
-        )}
-
-        {/* Charts & Tables Grid */}
-        {fullWidgets.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {fullWidgets.map(w => (
-              <React.Fragment key={w.id}>{renderWidget(w.id)}</React.Fragment>
-            ))}
+          </ResponsiveGridLayout>
+        ) : (
+          <div className="text-center text-slate-500 py-12">
+            No widgets active. Customize your layout to add widgets.
           </div>
         )}
       </div>

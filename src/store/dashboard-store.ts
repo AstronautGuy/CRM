@@ -1,25 +1,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
 export interface DashboardWidget {
   id: string;
   title: string;
   visible: boolean;
+  layout: any;
 }
 
 export const defaultWidgets: DashboardWidget[] = [
-  { id: "kpi-contacts", title: "Total Contacts", visible: true },
-  { id: "kpi-pipeline", title: "Active Pipeline", visible: true },
-  { id: "kpi-invoices", title: "Unpaid Invoices", visible: true },
-  { id: "kpi-tasks", title: "Tasks Due", visible: true },
-  { id: "chart-pipeline", title: "Pipeline Overview", visible: true },
-  { id: "table-activity", title: "Recent Activity", visible: true },
+  { id: "kpi-contacts", title: "Total Contacts", visible: true, layout: { i: "kpi-contacts", x: 0, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
+  { id: "kpi-pipeline", title: "Active Pipeline", visible: true, layout: { i: "kpi-pipeline", x: 3, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
+  { id: "kpi-invoices", title: "Unpaid Invoices", visible: true, layout: { i: "kpi-invoices", x: 6, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
+  { id: "kpi-tasks", title: "Tasks Due", visible: true, layout: { i: "kpi-tasks", x: 9, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
+  { id: "chart-pipeline", title: "Pipeline Overview", visible: true, layout: { i: "chart-pipeline", x: 0, y: 4, w: 6, h: 12, minW: 4, minH: 8 } },
+  { id: "table-activity", title: "Recent Activity", visible: true, layout: { i: "table-activity", x: 6, y: 4, w: 6, h: 12, minW: 4, minH: 8 } },
 ];
 
 interface DashboardState {
   widgets: DashboardWidget[];
   toggleWidget: (id: string) => void;
-  reorderWidgets: (startIndex: number, endIndex: number) => void;
+  updateLayout: (layouts: any[]) => void;
   resetLayout: () => void;
 }
 
@@ -33,15 +33,13 @@ export const useDashboardStore = create<DashboardState>()(
             w.id === id ? { ...w, visible: !w.visible } : w
           ),
         })),
-      reorderWidgets: (startIndex, endIndex) =>
-        set((state) => {
-          const result = Array.from(state.widgets);
-          const [removed] = result.splice(startIndex, 1);
-          if (removed) {
-            result.splice(endIndex, 0, removed);
-          }
-          return { widgets: result };
-        }),
+      updateLayout: (newLayouts) =>
+        set((state) => ({
+          widgets: state.widgets.map((w) => {
+            const updatedLayout = newLayouts.find((l) => l.i === w.id);
+            return updatedLayout ? { ...w, layout: updatedLayout } : w;
+          }),
+        })),
       resetLayout: () => set({ widgets: defaultWidgets }),
     }),
     {
