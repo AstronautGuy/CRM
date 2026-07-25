@@ -18,6 +18,7 @@ import { api } from "~/trpc/react";
 import { Loader2, Building2, Globe, FileText, MapPin, UserPlus } from "lucide-react";
 import { Country, State, City } from 'country-state-city';
 import { PhoneInput } from "~/components/ui/phone-input";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import { toast } from "sonner";
 import { Card, CardContent } from "~/components/ui/card";
 import Link from "next/link";
@@ -27,7 +28,10 @@ const contactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
-  contactPhone: z.string().optional(),
+  contactPhone: z.string().refine((val) => {
+    if (!val) return true;
+    return isValidPhoneNumber(val);
+  }, "Invalid phone number").optional(),
   jobTitle: z.string().optional(),
 
   // Company Info (matches onboarding)
@@ -35,14 +39,13 @@ const contactSchema = z.object({
   teamSize: z.string().optional(),
   website: z.string().refine((val) => {
     if (!val) return true;
-    try {
-      new URL(val.startsWith('http') ? val : `https://${val}`);
-      return true;
-    } catch {
-      return false;
-    }
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    return urlPattern.test(val);
   }, "Must be a valid URL").optional(),
-  phone: z.string().optional(),
+  phone: z.string().refine((val) => {
+    if (!val) return true;
+    return isValidPhoneNumber(val);
+  }, "Invalid phone number").optional(),
   country: z.string().optional(),
   currency: z.string().default("USD"),
   hasGst: z.boolean().default(false),

@@ -17,6 +17,7 @@ import { api } from "~/trpc/react";
 import { Loader2, Building2, Globe, FileText, CheckCircle2 } from "lucide-react";
 import { Country, State, City } from 'country-state-city';
 import { PhoneInput } from "~/components/ui/phone-input";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import { toast } from "sonner";
 
 const onboardingSchema = z.object({
@@ -25,14 +26,13 @@ const onboardingSchema = z.object({
   teamSize: z.string().min(1, "Please select a team size"),
   website: z.string().refine((val) => {
     if (!val) return true;
-    try {
-      new URL(val.startsWith('http') ? val : `https://${val}`);
-      return true;
-    } catch {
-      return false;
-    }
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    return urlPattern.test(val);
   }, "Must be a valid URL (e.g. acme.com or https://acme.com)").optional(),
-  phone: z.string().min(10, "Phone number is required and must be valid"),
+  phone: z.string().refine((val) => {
+    if (!val) return false;
+    return isValidPhoneNumber(val);
+  }, "Phone number is required and must be valid"),
   country: z.string().min(1, "Country is required"),
   currency: z.string().min(1, "Currency is required"),
   hasGst: z.boolean().default(false),
@@ -70,6 +70,7 @@ export default function OnboardingPage() {
 
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema) as any,
+    mode: "onChange",
     defaultValues: {
       name: "",
       displayName: "",
@@ -116,12 +117,24 @@ export default function OnboardingPage() {
   const cities = currentState ? City.getCitiesOfState(currentCountry, currentState) : [];
 
   const handleNext = async () => {
-    let fieldsToValidate: any[] = [];
+    let fieldsToValidate: (keyof OnboardingFormValues)[] = [];
     if (step === 1) fieldsToValidate = ["name", "teamSize", "website", "phone"];
     if (step === 2) fieldsToValidate = ["country", "currency", "hasGst", "gstin"];
     
     const isStepValid = await trigger(fieldsToValidate);
+    
     if (isStepValid) {
+      // Custom validation for Mock Verification steps
+      if (step === 1 && !otpVerified) {
+        form.setError("phone", { type: "manual", message: "Please verify your phone number to continue" });
+        return;
+      }
+      
+      if (step === 2 && hasGst && !gstVerified) {
+        form.setError("gstin", { type: "manual", message: "Please verify your GST details to continue" });
+        return;
+      }
+
       setStep(s => Math.min(s + 1, 3));
     }
   };
