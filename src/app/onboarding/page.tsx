@@ -29,7 +29,7 @@ const onboardingSchema = z.object({
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
     return urlPattern.test(val);
   }, "Must be a valid URL (e.g. acme.com or https://acme.com)").optional(),
-  phone: z.string().refine((val) => {
+  phone: z.string().min(10, "Phone number must be at least 10 characters").refine((val) => {
     if (!val) return false;
     return isValidPhoneNumber(val);
   }, "Phone number is required and must be valid"),

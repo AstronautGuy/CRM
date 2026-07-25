@@ -28,10 +28,13 @@ const contactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
-  contactPhone: z.string().refine((val) => {
-    if (!val) return true;
-    return isValidPhoneNumber(val);
-  }, "Invalid phone number").optional(),
+  contactPhone: z.union([
+    z.literal(""),
+    z.string().min(10, "Phone number must be at least 10 characters").refine((val) => {
+      if (!val) return true;
+      return isValidPhoneNumber(val);
+    }, "Invalid phone number")
+  ]).optional(),
   jobTitle: z.string().optional(),
 
   // Company Info (matches onboarding)
@@ -42,10 +45,13 @@ const contactSchema = z.object({
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
     return urlPattern.test(val);
   }, "Must be a valid URL").optional(),
-  phone: z.string().refine((val) => {
-    if (!val) return true;
-    return isValidPhoneNumber(val);
-  }, "Invalid phone number").optional(),
+  phone: z.union([
+    z.literal(""),
+    z.string().min(10, "Phone number must be at least 10 characters").refine((val) => {
+      if (!val) return true;
+      return isValidPhoneNumber(val);
+    }, "Invalid phone number")
+  ]).optional(),
   country: z.string().optional(),
   currency: z.string().default("USD"),
   hasGst: z.boolean().default(false),
