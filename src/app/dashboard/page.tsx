@@ -177,7 +177,7 @@ export default function DashboardPage() {
         </Popover>
       </div>
 
-      <div className="min-h-[600px]">
+      <div className="min-h-[600px] relative rounded-xl border border-slate-800/50 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:96px_96px] p-2">
         {activeWidgets.length > 0 ? (
           <ResponsiveGridLayout
             className="layout"
@@ -188,7 +188,10 @@ export default function DashboardPage() {
             }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-            rowHeight={30}
+            rowHeight={80}
+            compactType={null}
+            preventCollision={true}
+            resizeHandles={['s', 'e', 'se']}
             onLayoutChange={(layout: any) => updateLayout(layout)}
             margin={[16, 16]}
             {...( { draggableHandle: ".cursor-move" } as any )}

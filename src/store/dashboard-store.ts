@@ -8,12 +8,12 @@ export interface DashboardWidget {
 }
 
 export const defaultWidgets: DashboardWidget[] = [
-  { id: "kpi-contacts", title: "Total Contacts", visible: true, layout: { i: "kpi-contacts", x: 0, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
-  { id: "kpi-pipeline", title: "Active Pipeline", visible: true, layout: { i: "kpi-pipeline", x: 3, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
-  { id: "kpi-invoices", title: "Unpaid Invoices", visible: true, layout: { i: "kpi-invoices", x: 6, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
-  { id: "kpi-tasks", title: "Tasks Due", visible: true, layout: { i: "kpi-tasks", x: 9, y: 0, w: 3, h: 4, minW: 2, minH: 3 } },
-  { id: "chart-pipeline", title: "Pipeline Overview", visible: true, layout: { i: "chart-pipeline", x: 0, y: 4, w: 6, h: 12, minW: 4, minH: 8 } },
-  { id: "table-activity", title: "Recent Activity", visible: true, layout: { i: "table-activity", x: 6, y: 4, w: 6, h: 12, minW: 4, minH: 8 } },
+  { id: "kpi-contacts", title: "Total Contacts", visible: true, layout: { i: "kpi-contacts", x: 0, y: 0, w: 3, h: 2, minW: 2, minH: 1 } },
+  { id: "kpi-pipeline", title: "Active Pipeline", visible: true, layout: { i: "kpi-pipeline", x: 3, y: 0, w: 3, h: 2, minW: 2, minH: 1 } },
+  { id: "kpi-invoices", title: "Unpaid Invoices", visible: true, layout: { i: "kpi-invoices", x: 6, y: 0, w: 3, h: 2, minW: 2, minH: 1 } },
+  { id: "kpi-tasks", title: "Tasks Due", visible: true, layout: { i: "kpi-tasks", x: 9, y: 0, w: 3, h: 2, minW: 2, minH: 1 } },
+  { id: "chart-pipeline", title: "Pipeline Overview", visible: true, layout: { i: "chart-pipeline", x: 0, y: 2, w: 6, h: 4, minW: 3, minH: 3 } },
+  { id: "table-activity", title: "Recent Activity", visible: true, layout: { i: "table-activity", x: 6, y: 2, w: 6, h: 4, minW: 3, minH: 3 } },
 ];
 
 interface DashboardState {
