@@ -194,6 +194,8 @@ export default function DashboardPage() {
             resizeHandles={['s', 'e', 'se']}
             onLayoutChange={(layout: any) => updateLayout(layout)}
             margin={[16, 16]}
+            isDraggable={false}
+            isResizable={false}
             {...( { draggableHandle: ".cursor-move" } as any )}
           >
             {activeWidgets.map((w) => (
