@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Building2, LayoutDashboard, CreditCard, Users, Settings, LogOut, ShieldAlert } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -75,6 +76,21 @@ export function DashboardLayout({ children, userRole = "USER", userName, userEma
             })}
           </nav>
         </div>
+
+        {/* Quick Actions */}
+        {!isSuperAdmin && (
+          <div className="px-4 mt-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
+            <div className="space-y-2">
+              <Button variant="secondary" className="w-full justify-start bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 shadow-sm" size="sm">
+                + Create Quote
+              </Button>
+              <Button variant="secondary" className="w-full justify-start bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 shadow-sm" size="sm">
+                + Create Invoice
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* User Footer */}
         <div className="border-t border-slate-800 pt-4 px-2">

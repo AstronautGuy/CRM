@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { DashboardLayout } from "~/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -45,66 +46,9 @@ export default function ContactsPage() {
           </div>
           <div className="flex gap-3">
             <Button variant="outline">Import CSV</Button>
-            
-            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-              <DialogTrigger asChild>
-                <Button>+ Add Contact</Button>
-              </DialogTrigger>
-              <DialogContent className="bg-slate-900 border-slate-800 text-white sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Create New Contact</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        required
-                        className="bg-slate-950 border-slate-800"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData(prev => ({...prev, firstName: e.target.value}))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        required
-                        className="bg-slate-950 border-slate-800"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData(prev => ({...prev, lastName: e.target.value}))}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      required
-                      className="bg-slate-950 border-slate-800"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="jobTitle">Job Title</Label>
-                    <Input
-                      id="jobTitle"
-                      className="bg-slate-950 border-slate-800"
-                      value={formData.jobTitle}
-                      onChange={(e) => setFormData(prev => ({...prev, jobTitle: e.target.value}))}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full mt-2" disabled={createContact.isPending}>
-                    {createContact.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Contact
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-
+            <Button asChild>
+              <Link href="/contacts/new">+ Add Contact</Link>
+            </Button>
           </div>
         </div>
 
@@ -131,7 +75,9 @@ export default function ContactsPage() {
                 <p className="text-slate-400 max-w-sm mb-6">
                   Your customer database is currently empty. Add your first contact to start building your CRM.
                 </p>
-                <Button onClick={() => setModalOpen(true)}>Add Your First Contact</Button>
+                <Button asChild>
+                  <Link href="/contacts/new">Add Your First Contact</Link>
+                </Button>
               </div>
             ) : (
               <div className="overflow-x-auto">
