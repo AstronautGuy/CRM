@@ -64,6 +64,20 @@ export const crmRouter = createTRPCRouter({
         domain: z.string().optional(),
         industry: z.string().optional(),
         employeeCount: z.number().optional(),
+        teamSize: z.string().optional(),
+        phone: z.string().optional(),
+        countryCode: z.string().optional(),
+        country: z.string().optional(),
+        currency: z.string().optional(),
+        hasGst: z.boolean().default(false),
+        gstin: z.string().optional(),
+        businessPan: z.string().optional(),
+        businessType: z.string().optional(),
+        useCases: z.string().optional(), // storing array as string or JSON
+        addressStreet: z.string().optional(),
+        addressCity: z.string().optional(),
+        addressState: z.string().optional(),
+        addressPincode: z.string().optional(),
         address: z.string().optional(),
       })
     )
