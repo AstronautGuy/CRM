@@ -1,0 +1,2 @@
+ALTER TABLE "devcrm_user_settings" ADD COLUMN "theme" varchar(50) DEFAULT 'light' NOT NULL;--> statement-breakpoint
+ALTER TABLE "devcrm_user_settings" ADD COLUMN "locale" varchar(50) DEFAULT 'en-US' NOT NULL;

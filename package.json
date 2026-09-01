@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
+    "@aws-sdk/client-s3": "^3.1095.0",
+    "@aws-sdk/s3-request-presigner": "^3.1095.0",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-avatar": "^1.2.4",
     "@radix-ui/react-dialog": "^1.1.21",
@@ -58,6 +60,7 @@
     "react-hook-form": "^7.82.0",
     "react-phone-number-input": "^3.4.17",
     "react-signature-canvas": "1.1.0-alpha.2",
+    "react-to-print": "^3.3.0",
     "recharts": "^3.10.0",
     "server-only": "^0.0.1",
     "shadcn": "^4.14.1",

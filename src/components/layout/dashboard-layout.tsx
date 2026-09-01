@@ -3,10 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutDashboard, CreditCard, Users, Settings, LogOut, ShieldAlert } from "lucide-react";
+import { Building2, LayoutDashboard, CreditCard, Users, Settings, LogOut, ShieldAlert, Package, Repeat, Zap } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { NotificationsBell } from "~/components/layout/notifications-bell";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -24,13 +25,18 @@ export function DashboardLayout({ children, userRole = "USER", userName, userEma
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Client Companies", href: "/admin/organizations", icon: Building2 },
     { label: "Subscription Plans", href: "/admin/plans", icon: CreditCard },
+    { label: "Settings", href: "/settings/profile", icon: Settings },
   ];
 
   const tenantNav = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Clients", href: "/clients", icon: Users },
     { label: "Deal Pipeline", href: "/pipeline", icon: Building2 },
-    { label: "Subscription", href: "/billing", icon: CreditCard },
+    { label: "Inventory", href: "/inventory/products", icon: Package },
+    { label: "Client Subscriptions", href: "/billing/subscriptions", icon: Repeat },
+    { label: "Billing & Quotes", href: "/billing/invoices", icon: CreditCard },
+    { label: "Automations", href: "/automations", icon: Zap },
+    { label: "Settings", href: "/settings/profile", icon: Settings },
   ];
 
   const navItems = isSuperAdmin ? adminNav : tenantNav;
@@ -82,12 +88,16 @@ export function DashboardLayout({ children, userRole = "USER", userName, userEma
           <div className="px-4 mt-6">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</h3>
             <div className="space-y-2">
-              <Button variant="secondary" className="w-full justify-start border shadow-sm" size="sm">
-                + Create Quote
-              </Button>
-              <Button variant="secondary" className="w-full justify-start border shadow-sm" size="sm">
-                + Create Invoice
-              </Button>
+              <Link href="/billing/quotes/new" className="w-full">
+                <Button variant="secondary" className="w-full justify-start border shadow-sm" size="sm">
+                  + Create Quote
+                </Button>
+              </Link>
+              <Link href="/billing/invoices/new" className="w-full">
+                <Button variant="secondary" className="w-full justify-start border shadow-sm" size="sm">
+                  + Create Invoice
+                </Button>
+              </Link>
             </div>
           </div>
         )}
@@ -113,9 +123,10 @@ export function DashboardLayout({ children, userRole = "USER", userName, userEma
             {isSuperAdmin ? "Super Admin Portal" : "CRM Workspace"}
           </h1>
           <div className="flex items-center gap-3">
-            <span className="text-xs px-2.5 py-1 rounded-full bg-accent border border-border text-muted-foreground">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-accent border border-border text-muted-foreground hidden sm:inline-block">
               {isSuperAdmin ? "System Owner Mode" : "Organization Tenant"}
             </span>
+            {!isSuperAdmin && <NotificationsBell />}
           </div>
         </header>
 

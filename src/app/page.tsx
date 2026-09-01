@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { LatestPost } from "~/app/_components/post";
+
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from DevCRM tRPC" });
 
   return (
     <HydrateClient>
@@ -31,11 +30,7 @@ export default async function Home() {
             </Link>
           </div>
 
-          <div className="flex flex-col items-center gap-2 mt-6">
-            <p className="text-sm text-slate-400">
-              tRPC Connection: <span className="text-emerald-400 font-semibold">{hello ? hello.greeting : "Loading..."}</span>
-            </p>
-          </div>
+
         </div>
       </main>
     </HydrateClient>

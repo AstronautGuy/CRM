@@ -13,3 +13,8 @@ Businesses, B2B companies, and sales/ops teams needing an all-in-one CRM suite f
 - **API**: tRPC v11 & React Query
 - **Styling & UI**: TailwindCSS v4
 - **Code Quality**: Biome
+- **File Storage**: Cloudflare R2 (S3 API)
+
+## Current State
+- **Completed**: Milestone 5 (Settings & Profile Management).
+- **Current Milestone**: Milestone 6: Core Billing & Financial Operations. Focus is on robust document management (Quotes/Invoices lists, Edit vs Revise workflows), public document links for clients (no login required), payment tracking, and client ledgers.

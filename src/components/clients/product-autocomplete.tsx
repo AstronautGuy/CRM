@@ -38,7 +38,7 @@ export function ProductAutocomplete({ onSelect, placeholder = "Search or create 
   const [searchValue, setSearchValue] = useState("");
   
   // Use trpc to fetch products
-  const { data: products = [], isLoading } = api.billing.getProducts.useQuery();
+  const { data: products = [], isLoading } = api.inventory.getProducts.useQuery();
 
   const handleSelect = (product: Product) => {
     setOpen(false);

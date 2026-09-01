@@ -62,7 +62,7 @@ export default function BillingPage() {
     createQuote.mutate({
       title: quoteForm.title,
       totalAmount: parseFloat(quoteForm.totalAmount),
-    });
+    } as any);
   };
 
   return (
@@ -163,7 +163,7 @@ export default function BillingPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {invoices?.map((inv) => (
+                  {invoices?.map((inv: any) => (
                     <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-900 border border-slate-800">
                       <div>
                         <div className="font-mono text-sm text-white font-medium">{inv.invoiceNumber}</div>

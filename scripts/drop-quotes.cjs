@@ -1,3 +1,4 @@
+// @ts-nocheck
 const pg = require('pg');
 require('dotenv').config();
 

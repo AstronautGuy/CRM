@@ -1,10 +1,16 @@
 export type TaxType = "none" | "GST (India)" | "VAT" | "PPN" | "SST" | "HST" | "TAX" | string;
 export type GstType = "IGST" | "CGST & SGST";
-export type DiscountType = "total" | "item";
+export type DiscountType = "none" | "total" | "item";
 
-export interface QuoteData {
+export interface DocumentData {
   logoUrl?: string;
   companyId?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  
+  // Invoice Specific Fields
+  poNumber?: string;
+  paymentTerms?: string;
   
   // Settings & Toggles
   showTotalSection: boolean;

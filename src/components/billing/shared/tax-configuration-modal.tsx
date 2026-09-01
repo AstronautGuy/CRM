@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import type { TaxType, GstType } from "~/types/quote";
+import type { TaxType, GstType } from "~/types/document";
 
 interface TaxConfig {
   type: TaxType;

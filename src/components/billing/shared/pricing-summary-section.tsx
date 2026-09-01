@@ -12,14 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import type { QuoteData, DiscountType } from "~/types/quote";
+import type { DocumentData, DiscountType } from "~/types/document";
 import { TaxConfigurationModal } from "./tax-configuration-modal";
 import { CessConfigurationModal } from "./cess-configuration-modal";
 import { cn } from "~/lib/utils";
 
 interface PricingSummarySectionProps {
-  data: QuoteData;
-  onChange: (data: QuoteData) => void;
+  data: DocumentData;
+  onChange: (data: DocumentData) => void;
   subtotal: number;
 }
 

@@ -31,7 +31,8 @@ export function SignaturePadModal({
             onSave={(url) => {
               onSave(url);
               onClose();
-            }} 
+            }}
+            onClear={() => {}}
           />
         </div>
       </DialogContent>

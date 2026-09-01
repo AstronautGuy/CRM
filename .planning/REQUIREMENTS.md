@@ -1,18 +1,25 @@
-# Milestone 4 Requirements: MVP Polish & Central Dashboard
+# DevCRM - Requirements
 
-## Context
-The core systems for CRM (Contacts), Deal Pipeline, and Billing (Invoices/Quotes) were built in Milestones 1 & 2. However, the user experience is currently disconnected because the central `/dashboard` page is missing (returning a 404), leading users to believe the features do not exist. 
+## Milestone 6: Core Billing & Financial Operations
 
-## Scope
-1. **Central Dashboard (`/dashboard`)**:
-   - Build a comprehensive overview page displaying key metrics: total contacts, active pipeline value, recent invoices, and pending tasks.
-   - Serve as the default landing page post-login.
-2. **Navigation Fixes**:
-   - Ensure all sidebar links in `dashboard-layout.tsx` accurately point to implemented pages (Contacts, Pipeline, Billing, Products, Marketing).
-3. **Feature Enhancements**:
-   - Make the "Quote Maker" and "Invoice Maker" more prominent within the `/billing` section with clear Call-to-Action buttons.
-   - Enhance the "Customer Database" (`/contacts`) with clearer empty states and immediate data entry forms.
+### 1. Document Management & Workflows
+- [ ] Data tables listing all Quotes and Invoices (Search, Filter, Pagination).
+- [ ] Edit Action: Modify a Draft document directly.
+- [ ] Revision Action: Clone an existing (Locked/Sent) document into a new revision (e.g., v2).
+- [ ] 1-Click "Convert Quote to Invoice".
+- [ ] "Proforma Invoice" as a distinct document type/state.
 
-## Phases
-- **Phase 7**: Central Dashboard & Navigation Fixes
-- **Phase 8**: Billing & CRM UI Enhancements
+### 2. Public Document Links (Client View)
+- [ ] Generate secure, obscure public URLs for Quotes and Invoices (no login required for clients).
+- [ ] Public view page displaying the document.
+- [ ] Action to download as PDF from the public link.
+- [ ] (Future) Integrate payment gateway buttons directly on this public page.
+
+### 3. Payments & Receipts
+- [ ] UI to log full or partial payments against an invoice.
+- [ ] Track payment methods and transaction IDs.
+- [ ] Generate Payment Receipts and associate them with Invoices.
+
+### 4. Party Ledger & Statements
+- [ ] Dedicated view per Client showing a statement of accounts.
+- [ ] Running ledger of invoices, payments received, and outstanding balances.

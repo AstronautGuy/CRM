@@ -1,22 +1,26 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "~/components/layout/dashboard-layout";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { DatePicker } from "~/components/ui/date-picker";
-import { ClientDropdown } from "~/components/billing/quotes/client-dropdown";
-import { PricingSummarySection } from "~/components/billing/quotes/pricing-summary-section";
-import { TermsAndConditionsSection } from "~/components/billing/quotes/terms-and-conditions-section";
-import { SignaturePadModal } from "~/components/billing/quotes/signature-pad-modal";
+import { ClientDropdown } from "~/components/billing/shared/client-dropdown";
+import { FileUploadDropzone } from "~/components/ui/file-upload-dropzone";
+import { PricingSummarySection } from "~/components/billing/shared/pricing-summary-section";
+import { TermsAndConditionsSection } from "~/components/billing/shared/terms-and-conditions-section";
+import { SignaturePadModal } from "~/components/billing/shared/signature-pad-modal";
 import { LineItemsTable } from "~/components/clients/line-items-table";
 import type { LineItem } from "~/components/clients/line-items-table";
-import type { QuoteData } from "~/types/quote";
+import type { DocumentData } from "~/types/document";
 import { Upload, FileText, Download, Save, Send } from "lucide-react";
 import { api } from "~/trpc/react";
+import { toast } from "sonner";
+import { z } from "zod";
 
-const defaultQuoteData: QuoteData = {
+const defaultDocumentData: DocumentData = {
   logoUrl: "",
   companyId: "",
   showTotalSection: true,
@@ -32,9 +36,13 @@ const defaultQuoteData: QuoteData = {
   termsList: [],
 };
 
+const emailSchema = z.string().email().optional().or(z.literal(""));
+const phoneSchema = z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone format").optional().or(z.literal(""));
+
 export default function NewQuotePage() {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
+  const router = useRouter();
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [dueDate, setDueDate] = useState<Date | undefined>();
@@ -42,23 +50,88 @@ export default function NewQuotePage() {
   const [title, setTitle] = useState("Quotation");
   
   const [items, setItems] = useState<LineItem[]>([]);
-  const [quoteData, setQuoteData] = useState<QuoteData>(defaultQuoteData);
+  const [quoteData, setQuoteData] = useState<DocumentData>(defaultDocumentData);
   
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
-  // Calculate subtotal
   const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+  const taxAmount = Math.floor(subtotal * ((quoteData.taxConfig.percent || 0) / 100));
+  const totalAmount = subtotal + taxAmount;
 
   const { data: userSettings } = api.billing.getUserSettings.useQuery();
-  
-  // Initialize from settings
+  const { data: nextNumberData } = api.billing.getNextDocumentNumber.useQuery(
+    { type: "quote", companyId: quoteData.companyId },
+    { enabled: !!userSettings }
+  );
+
+  const createQuote = api.billing.createQuote.useMutation({
+    onSuccess: () => {
+      toast.success("Quote saved successfully");
+    },
+    onError: (err) => {
+      toast.error(`Error: ${err.message}`);
+    }
+  });
+
   useEffect(() => {
-    if (userSettings?.customLabels?.quoteTitle) {
-      setTitle(userSettings.customLabels.quoteTitle);
+    const labels = userSettings?.customLabels as any;
+    if (labels?.quoteTitle) {
+      setTitle(labels.quoteTitle);
     }
   }, [userSettings]);
 
+  useEffect(() => {
+    if (nextNumberData?.nextNumber) {
+      setQuoteNumber(nextNumberData.nextNumber);
+    }
+  }, [nextNumberData?.nextNumber]);
+
   if (!isClient) return null;
+
+  const handleSave = (action: "draft" | "new" | "continue") => {
+    if (!quoteData.companyId) {
+      toast.error("Please select a client.");
+      return;
+    }
+    if (!date) {
+      toast.error("Please select a date.");
+      return;
+    }
+
+    createQuote.mutate({
+      companyId: quoteData.companyId,
+      quoteNumber,
+      title,
+      date,
+      dueDate,
+      labels: {},
+      customFields: {},
+      showTotalInPdf: quoteData.showTotalSection,
+      showTotalInWords: quoteData.showTotalInWords,
+      lineItems: items,
+      taxPercent: quoteData.taxConfig.percent || 0,
+      discountType: quoteData.discount.isPercentage ? "PERCENT" : "AMOUNT",
+      discountValue: quoteData.discount.amount,
+      additionalCharges: quoteData.additionalCharges,
+      totalAmount,
+      signatureType: "IMAGE",
+      signatureData: quoteData.signatureUrl,
+      notes: "",
+      terms: quoteData.termsList,
+      contactEmail: quoteData.contactEmail,
+      contactPhone: quoteData.contactPhone,
+    }, {
+      onSuccess: () => {
+        if (action === "draft" || action === "continue") {
+          router.push("/billing/quotes");
+        } else if (action === "new") {
+          window.location.reload();
+        }
+      }
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -68,18 +141,11 @@ export default function NewQuotePage() {
             <h2 className="text-2xl font-bold tracking-tight">Create Quotation</h2>
             <p className="text-muted-foreground text-sm mt-1">Build a professional quotation or estimate.</p>
           </div>
-          <div className="flex gap-3">
-             <Button variant="outline"><Save className="w-4 h-4 mr-2" /> Save to Draft</Button>
-             <Button variant="outline"><FileText className="w-4 h-4 mr-2" /> Save & Create New</Button>
-             <Button><Send className="w-4 h-4 mr-2" /> Save & Continue</Button>
-          </div>
         </div>
 
         <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
-          {/* Header Section */}
           <div className="p-8 pb-4 border-b border-border">
             <div className="flex justify-between items-start gap-8">
-              {/* Left Side: Title and Client */}
               <div className="flex-1 space-y-6">
                 <Input 
                   value={title} 
@@ -93,30 +159,68 @@ export default function NewQuotePage() {
                     value={quoteData.companyId || ""} 
                     onChange={(val) => setQuoteData({ ...quoteData, companyId: val })} 
                   />
+                  <div className="flex gap-4 mt-2">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs text-muted-foreground">Contact Email</Label>
+                      <Input 
+                        placeholder="Email address"
+                        value={quoteData.contactEmail || ""}
+                        onChange={(e) => {
+                          setQuoteData({ ...quoteData, contactEmail: e.target.value });
+                          if (emailError) setEmailError("");
+                        }}
+                        onBlur={(e) => {
+                          const res = emailSchema.safeParse(e.target.value);
+                          if (!res.success) setEmailError(res.error.errors[0].message);
+                        }}
+                        className={`h-9 ${emailError ? "border-red-500" : ""}`}
+                      />
+                      {emailError && <p className="text-[10px] text-red-500">{emailError}</p>}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs text-muted-foreground">Contact Phone</Label>
+                      <Input 
+                        placeholder="Phone number"
+                        value={quoteData.contactPhone || ""}
+                        onChange={(e) => {
+                          setQuoteData({ ...quoteData, contactPhone: e.target.value });
+                          if (phoneError) setPhoneError("");
+                        }}
+                        onBlur={(e) => {
+                          const res = phoneSchema.safeParse(e.target.value);
+                          if (!res.success) setPhoneError(res.error.errors[0].message);
+                        }}
+                        className={`h-9 ${phoneError ? "border-red-500" : ""}`}
+                      />
+                      {phoneError && <p className="text-[10px] text-red-500">{phoneError}</p>}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Right Side: Meta Data & Logo */}
               <div className="flex-1 max-w-xs space-y-4">
-                 {/* Logo Upload Placeholder */}
-                 <div className="w-full h-24 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:bg-slate-50 cursor-pointer transition-colors">
-                    {quoteData.logoUrl ? (
-                      <img src={quoteData.logoUrl} alt="Logo" className="max-h-full object-contain p-2" />
-                    ) : (
-                      <>
-                        <Upload className="w-6 h-6 mb-2 opacity-50" />
-                        <span className="text-xs font-medium">Upload Company Logo</span>
-                      </>
-                    )}
-                 </div>
+                 <FileUploadDropzone
+                   currentImageUrl={quoteData.logoUrl}
+                   onUploadSuccess={(url) => setQuoteData({ ...quoteData, logoUrl: url })}
+                   onRemove={() => setQuoteData({ ...quoteData, logoUrl: undefined })}
+                   folder="logos"
+                   className="h-24 w-full"
+                 />
 
-                <div className="grid grid-cols-[100px_1fr] items-center gap-2">
-                  <Label className="text-sm font-medium text-muted-foreground">Quote #</Label>
-                  <Input 
-                    value={quoteNumber} 
-                    onChange={(e) => setQuoteNumber(e.target.value)}
-                    className="h-8 text-sm"
-                  />
+                <div className="grid grid-cols-[100px_1fr] items-start gap-2">
+                  <Label className="text-sm font-medium text-muted-foreground mt-2">Quote #</Label>
+                  <div className="space-y-1">
+                    <Input 
+                      value={quoteNumber} 
+                      onChange={(e) => setQuoteNumber(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                    {nextNumberData?.lastDocument && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Last Quote: {nextNumberData.lastDocument.number} ({new Date(nextNumberData.lastDocument.date).toLocaleDateString()})
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-[100px_1fr] items-center gap-2">
                   <Label className="text-sm font-medium text-muted-foreground">Date</Label>
@@ -130,12 +234,10 @@ export default function NewQuotePage() {
             </div>
           </div>
 
-          {/* Line Items Table */}
           <div className="p-8 pb-4">
              <LineItemsTable items={items} onChange={setItems} currencySymbol="₹" />
           </div>
 
-          {/* Pricing Summary */}
           <div className="px-8 pb-4">
              <PricingSummarySection 
                data={quoteData} 
@@ -144,7 +246,6 @@ export default function NewQuotePage() {
              />
           </div>
 
-          {/* T&C and Rich Text Blocks */}
           <div className="px-8 pb-8">
              <TermsAndConditionsSection 
                data={quoteData}
@@ -152,7 +253,6 @@ export default function NewQuotePage() {
              />
           </div>
           
-          {/* Signatures */}
           <div className="px-8 pb-8 flex flex-col items-end border-t border-border pt-8 mt-8">
               {quoteData.signatureUrl ? (
                  <div className="flex flex-col items-center gap-2">
@@ -165,6 +265,12 @@ export default function NewQuotePage() {
                  </Button>
               )}
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-8">
+           <Button variant="outline" onClick={() => handleSave("draft")} disabled={createQuote.isPending}><Save className="w-4 h-4 mr-2" /> Save to Draft</Button>
+           <Button variant="outline" onClick={() => handleSave("new")} disabled={createQuote.isPending}><FileText className="w-4 h-4 mr-2" /> Save & Create New</Button>
+           <Button onClick={() => handleSave("continue")} disabled={createQuote.isPending}><Send className="w-4 h-4 mr-2" /> Save & Continue</Button>
         </div>
       </div>
       

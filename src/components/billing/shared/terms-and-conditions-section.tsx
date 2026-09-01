@@ -4,12 +4,12 @@ import * as React from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import type { QuoteData } from "~/types/quote";
+import type { DocumentData } from "~/types/document";
 import { RichTextEditor } from "~/components/ui/rich-text-editor";
 
 interface TermsAndConditionsSectionProps {
-  data: QuoteData;
-  onChange: (data: QuoteData) => void;
+  data: DocumentData;
+  onChange: (data: DocumentData) => void;
 }
 
 export function TermsAndConditionsSection({

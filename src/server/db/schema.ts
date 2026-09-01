@@ -281,7 +281,7 @@ export const deals = createTable("deal", (d) => ({
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
 
-export const invoiceStatusEnum = pgEnum("devcrm_invoice_status", ["DRAFT", "SENT", "PAID", "OVERDUE", "CANCELLED"]);
+export const invoiceStatusEnum = pgEnum("devcrm_invoice_status", ["DRAFT", "PROFORMA", "SENT", "PAID", "OVERDUE", "CANCELLED"]);
 
 // --- PRODUCTS & INVENTORY ---
 export const productTypeEnum = pgEnum("devcrm_product_type", ["PRODUCT", "SERVICE"]);
@@ -313,6 +313,8 @@ export const userSettings = createTable("user_settings", (d) => ({
   customLabels: d.jsonb(),
   signatureImage: d.text(),
   tncList: d.jsonb(),
+  theme: d.varchar({ length: 50 }).default("light").notNull(),
+  locale: d.varchar({ length: 50 }).default("en-US").notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
@@ -323,6 +325,7 @@ export const quotes = createTable("quote", (d) => ({
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   companyId: d.varchar({ length: 255 }).references(() => companies.id),
   quoteNumber: d.varchar({ length: 100 }).notNull(),
+  version: d.integer().default(1).notNull(),
   title: d.varchar({ length: 255 }),
   date: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
   dueDate: d.timestamp({ mode: "date", withTimezone: true }),
@@ -360,18 +363,130 @@ export const invoices = createTable("invoice", (d) => ({
   organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   quoteId: d.varchar({ length: 255 }).references(() => quotes.id),
   companyId: d.varchar({ length: 255 }).references(() => companies.id),
-  invoiceNumber: d.varchar({ length: 100 }).notNull().unique(),
+  invoiceNumber: d.varchar({ length: 100 }).notNull(),
+  version: d.integer().default(1).notNull(),
+  
+  // Content from Quote
+  title: d.varchar({ length: 255 }),
+  labels: d.jsonb(),
+  customFields: d.jsonb(),
+  showTotalInPdf: d.boolean().default(true).notNull(),
+  showTotalInWords: d.boolean().default(false).notNull(),
+  lineItems: d.jsonb(), 
+  taxPercent: d.integer().default(0).notNull(),
+  discountType: d.varchar({ length: 20 }).default("AMOUNT").notNull(), 
+  discountValue: d.integer().default(0).notNull(), 
+  additionalCharges: d.jsonb(),
+  
+  signatureType: d.varchar({ length: 50 }).default("IMAGE").notNull(),
+  signatureName: d.varchar({ length: 255 }),
+  signatureData: d.text(),
+  notes: d.text(),
+  attachments: d.jsonb(),
+  terms: d.jsonb(), 
+  contactEmail: d.varchar({ length: 255 }),
+  contactPhone: d.varchar({ length: 50 }),
+  
   status: invoiceStatusEnum("status").default("DRAFT").notNull(),
   subtotal: d.integer().notNull(),
   taxAmount: d.integer().notNull(),
   totalAmount: d.integer().notNull(),
+  amountPaid: d.integer().default(0).notNull(),
+  balanceDue: d.integer().notNull(),
   dueDate: d.timestamp({ withTimezone: true }).notNull(),
   paidAt: d.timestamp({ withTimezone: true }),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
 }));
 
+export const quoteRelations = relations(quotes, ({ one }) => ({
+  company: one(companies, {
+    fields: [quotes.companyId],
+    references: [companies.id],
+  }),
+}));
+
+export const invoiceRelations = relations(invoices, ({ one }) => ({
+  company: one(companies, {
+    fields: [invoices.companyId],
+    references: [companies.id],
+  }),
+  quote: one(quotes, {
+    fields: [invoices.quoteId],
+    references: [quotes.id],
+  }),
+}));
+
 export const taskPriorityEnum = pgEnum("devcrm_task_priority", ["LOW", "MEDIUM", "HIGH", "URGENT"]);
 export const taskStatusEnum = pgEnum("devcrm_task_status", ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]);
+
+export const payments = createTable("payment", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  invoiceId: d.varchar({ length: 255 }).notNull().references(() => invoices.id, { onDelete: "cascade" }),
+  amount: d.integer().notNull(), // in cents
+  paymentDate: d.timestamp({ withTimezone: true }).notNull(),
+  paymentMethod: d.varchar({ length: 50 }).notNull(), // e.g. BANK_TRANSFER, CASH, CREDIT_CARD
+  referenceNumber: d.varchar({ length: 255 }), // e.g. Check number, TXN ID
+  notes: d.text(),
+  createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+}));
+
+export const statements = createTable("statement", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  companyId: d.varchar({ length: 255 }).notNull().references(() => companies.id, { onDelete: "cascade" }),
+  statementNumber: d.varchar({ length: 100 }).notNull(),
+  startDate: d.timestamp({ withTimezone: true }).notNull(),
+  endDate: d.timestamp({ withTimezone: true }).notNull(),
+  openingBalance: d.integer().notNull(), // in cents
+  closingBalance: d.integer().notNull(), // in cents
+  transactions: d.jsonb().notNull(), // array of snapshot transactions
+  createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+}));
+
+export const statementRelations = relations(statements, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [statements.organizationId],
+    references: [organizations.id],
+  }),
+  company: one(companies, {
+    fields: [statements.companyId],
+    references: [companies.id],
+  }),
+}));
+
+// --- CLIENT SUBSCRIPTIONS ---
+export const clientSubscriptionStatusEnum = pgEnum("devcrm_client_subscription_status", ["ACTIVE", "CANCELLED", "EXPIRED"]);
+export const clientSubscriptionCycleEnum = pgEnum("devcrm_client_subscription_cycle", ["MONTHLY", "YEARLY"]);
+
+export const clientSubscriptions = createTable("client_subscription", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  companyId: d.varchar({ length: 255 }).notNull().references(() => companies.id, { onDelete: "cascade" }),
+  productId: d.varchar({ length: 255 }).notNull().references(() => products.id),
+  status: clientSubscriptionStatusEnum("status").default("ACTIVE").notNull(),
+  billingCycle: clientSubscriptionCycleEnum("billing_cycle").default("MONTHLY").notNull(),
+  price: d.integer().notNull(), // in cents
+  startDate: d.timestamp({ withTimezone: true }).notNull(),
+  nextRenewalDate: d.timestamp({ withTimezone: true }).notNull(),
+  createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
+
+export const clientSubscriptionRelations = relations(clientSubscriptions, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [clientSubscriptions.organizationId],
+    references: [organizations.id],
+  }),
+  company: one(companies, {
+    fields: [clientSubscriptions.companyId],
+    references: [companies.id],
+  }),
+  product: one(products, {
+    fields: [clientSubscriptions.productId],
+    references: [products.id],
+  }),
+}));
 
 // --- MARKETING & AUTOMATION REMINDERS ---
 export const adCampaigns = createTable("ad_campaign", (d) => ({
@@ -407,6 +522,21 @@ export const notifications = createTable("notification", (d) => ({
   message: d.text().notNull(),
   isRead: d.boolean().default(false).notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+}));
+
+export const automationTriggerEnum = pgEnum("devcrm_automation_trigger", ["INVOICE_DUE", "SUBSCRIPTION_RENEWAL", "DEAL_STALLED"]);
+export const automationActionEnum = pgEnum("devcrm_automation_action", ["CREATE_NOTIFICATION", "CREATE_TASK"]);
+
+export const automationRules = createTable("automation_rule", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  name: d.varchar({ length: 255 }).notNull(),
+  triggerType: automationTriggerEnum("trigger_type").notNull(),
+  daysOffset: d.integer().default(0).notNull(), // e.g. -7 for 7 days before
+  actionType: automationActionEnum("action_type").notNull(),
+  isActive: d.boolean().default(true).notNull(),
+  createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
 
 

@@ -20,11 +20,11 @@ function KPICard({ title, value, icon: Icon }: { title: string; value: string | 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-slate-400">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-slate-500" />
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-white">{value}</div>
+        <div className="text-2xl font-bold text-foreground">{value}</div>
       </CardContent>
     </Card>
   );
@@ -80,8 +80,8 @@ export default function DashboardPage() {
                 <BarChart data={chartData}>
                   <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff'}} />
-                  <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--card-foreground))'}} />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -95,14 +95,14 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               {activity?.length === 0 ? (
-                <p className="text-sm text-slate-500">No recent activity.</p>
+                <p className="text-sm text-muted-foreground">No recent activity.</p>
               ) : (
                 <div className="space-y-4">
                   {activity?.map((task) => (
-                    <div key={task.id} className="flex items-center justify-between border-b border-slate-800 pb-2 last:border-0 last:pb-0">
+                    <div key={task.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0">
                       <div>
-                        <p className="font-medium text-white">{task.title}</p>
-                        <p className="text-xs text-slate-400">{new Date(task.createdAt).toLocaleDateString()}</p>
+                        <p className="font-medium text-foreground">{task.title}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(task.createdAt).toLocaleDateString()}</p>
                       </div>
                       <Badge variant={task.status === "COMPLETED" ? "success" : "secondary"}>
                         {task.status}
@@ -141,8 +141,8 @@ export default function DashboardPage() {
       )}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Dashboard Overview</h2>
-          <p className="text-slate-400 text-sm">Welcome back to your CRM workspace.</p>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight">Dashboard Overview</h2>
+          <p className="text-muted-foreground text-sm">Welcome back to your CRM workspace.</p>
         </div>
         
         <Popover open={customizeOpen} onOpenChange={setCustomizeOpen}>
@@ -152,27 +152,27 @@ export default function DashboardPage() {
               Customize Layout
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 p-4 bg-slate-900 border-slate-800">
-            <h4 className="font-semibold text-white mb-4">Dashboard Widgets</h4>
+          <PopoverContent align="end" className="w-80 p-4 bg-popover border-border">
+            <h4 className="font-semibold text-popover-foreground mb-4">Dashboard Widgets</h4>
             <div className="space-y-2">
               {widgets.map((widget, index) => (
-                <div key={widget.id} className="flex items-center justify-between p-2 rounded-md bg-slate-800 border border-slate-700">
-                  <span className="text-sm text-slate-200 truncate pr-2">{widget.title}</span>
+                <div key={widget.id} className="flex items-center justify-between p-2 rounded-md bg-secondary border border-border">
+                  <span className="text-sm text-secondary-foreground truncate pr-2">{widget.title}</span>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" onClick={() => toggleWidget(widget.id)}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => toggleWidget(widget.id)}>
                       {widget.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" disabled={index === 0} onClick={() => reorderWidgets(index, index - 1)}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={index === 0} onClick={() => reorderWidgets(index, index - 1)}>
                       <ArrowUp className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" disabled={index === widgets.length - 1} onClick={() => reorderWidgets(index, index + 1)}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={index === widgets.length - 1} onClick={() => reorderWidgets(index, index + 1)}>
                       <ArrowDown className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
-            <Button variant="ghost" size="sm" className="w-full mt-4 text-xs text-slate-400 hover:text-white" onClick={resetLayout}>
+            <Button variant="ghost" size="sm" className="w-full mt-4 text-xs text-muted-foreground hover:text-foreground" onClick={resetLayout}>
               Reset to Default
             </Button>
           </PopoverContent>

@@ -9,10 +9,15 @@ import { Plus } from "lucide-react";
 interface ClientCreationModalProps {
   onSuccess?: (client: any) => void;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ClientCreationModal({ onSuccess, trigger }: ClientCreationModalProps) {
-  const [open, setOpen] = useState(false);
+export function ClientCreationModal({ onSuccess, trigger, open, onOpenChange }: ClientCreationModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+  const setOpen = isControlled && onOpenChange ? onOpenChange : setInternalOpen;
 
   const handleSuccess = (client: any) => {
     setOpen(false);
@@ -22,7 +27,7 @@ export function ClientCreationModal({ onSuccess, trigger }: ClientCreationModalP
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm" className="h-8 flex gap-1">

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import postgres from 'postgres';
 import fs from 'fs';
 

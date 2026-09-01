@@ -31,8 +31,8 @@ export default async function PipelinePage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Deal Pipeline</h2>
-            <p className="text-slate-400 text-sm">Manage opportunity stages, pipeline forecasting, and deal flows.</p>
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">Deal Pipeline</h2>
+            <p className="text-muted-foreground text-sm">Manage opportunity stages, pipeline forecasting, and deal flows.</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline">Pipeline Settings</Button>
@@ -42,36 +42,36 @@ export default async function PipelinePage() {
 
         {/* Metrics Widgets */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-slate-900/60 border-slate-800">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader className="py-3">
-              <CardTitle className="text-xs text-slate-400 uppercase font-mono">Total Pipeline Value</CardTitle>
+              <CardTitle className="text-xs text-muted-foreground uppercase font-mono">Total Pipeline Value</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">$123,000</div>
+              <div className="text-2xl font-bold text-foreground">$123,000</div>
             </CardContent>
           </Card>
-          <Card className="bg-slate-900/60 border-slate-800">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader className="py-3">
-              <CardTitle className="text-xs text-slate-400 uppercase font-mono">Weighted Forecast</CardTitle>
+              <CardTitle className="text-xs text-muted-foreground uppercase font-mono">Weighted Forecast</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-400">$64,200</div>
+              <div className="text-2xl font-bold text-primary">$64,200</div>
             </CardContent>
           </Card>
-          <Card className="bg-slate-900/60 border-slate-800">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader className="py-3">
-              <CardTitle className="text-xs text-slate-400 uppercase font-mono">Open Opportunities</CardTitle>
+              <CardTitle className="text-xs text-muted-foreground uppercase font-mono">Open Opportunities</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">3 Deals</div>
+              <div className="text-2xl font-bold text-foreground">3 Deals</div>
             </CardContent>
           </Card>
-          <Card className="bg-slate-900/60 border-slate-800">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader className="py-3">
-              <CardTitle className="text-xs text-slate-400 uppercase font-mono">Est. Win Rate</CardTitle>
+              <CardTitle className="text-xs text-muted-foreground uppercase font-mono">Est. Win Rate</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">45%</div>
+              <div className="text-2xl font-bold text-emerald-600">45%</div>
             </CardContent>
           </Card>
         </div>
@@ -81,27 +81,27 @@ export default async function PipelinePage() {
           {stages.map((stage) => {
             const stageDeals = deals.filter((d) => d.stageId === stage.id);
             return (
-              <div key={stage.id} className="bg-slate-900/40 rounded-xl border border-slate-800 p-3 flex flex-col min-h-[480px]">
+              <div key={stage.id} className="bg-secondary/40 rounded-xl border border-border shadow-sm p-3 flex flex-col min-h-[480px]">
                 <div className={`border-l-4 ${stage.color} pl-2 py-1 mb-3 flex items-center justify-between`}>
-                  <span className="font-semibold text-sm text-white">{stage.name}</span>
+                  <span className="font-semibold text-sm text-foreground">{stage.name}</span>
                   <Badge variant="secondary" className="text-[10px]">{stageDeals.length}</Badge>
                 </div>
 
                 <div className="space-y-3 flex-1">
                   {stageDeals.map((deal) => (
-                    <Card key={deal.id} className="bg-slate-900 border-slate-700/60 hover:border-blue-500 cursor-grab transition shadow-sm">
+                    <Card key={deal.id} className="bg-card border-border hover:border-primary cursor-grab transition shadow-sm">
                       <CardContent className="p-3 space-y-2">
-                        <div className="font-medium text-sm text-white">{deal.title}</div>
-                        <div className="text-xs text-slate-400">{deal.company}</div>
-                        <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800">
-                          <span className="font-bold text-emerald-400">{deal.value}</span>
-                          <span className="text-[10px] text-slate-500">{stage.winProb}% Prob</span>
+                        <div className="font-medium text-sm text-foreground">{deal.title}</div>
+                        <div className="text-xs text-muted-foreground">{deal.company}</div>
+                        <div className="flex items-center justify-between text-xs pt-1 border-t border-border">
+                          <span className="font-bold text-emerald-600">{deal.value}</span>
+                          <span className="text-[10px] text-muted-foreground">{stage.winProb}% Prob</span>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {stageDeals.length === 0 && (
-                    <div className="h-24 rounded-lg border border-dashed border-slate-800/80 flex items-center justify-center text-xs text-slate-600">
+                    <div className="h-24 rounded-lg border border-dashed border-border flex items-center justify-center text-xs text-muted-foreground">
                       Drag deal here
                     </div>
                   )}

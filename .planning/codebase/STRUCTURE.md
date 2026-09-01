@@ -1,25 +1,14 @@
-# Project Structure
+# Directory Structure
 
-## Directory Layout
-```
-devcrm/
-├── public/                 # Static assets
-├── src/
-│   ├── app/                # Next.js App Router routes & layouts
-│   │   ├── _components/    # Private UI components specific to app router
-│   │   ├── api/            # API handlers (tRPC handler route)
-│   │   ├── layout.tsx      # Root layout component
-│   │   └── page.tsx        # Homepage entry
-│   ├── env.js              # Enforced environment variable validation (Zod + T3 Env)
-│   ├── server/             # Server-side backend logic
-│   │   ├── api/            # tRPC routers & context setup
-│   │   └── db/             # Drizzle ORM schema & client initialization
-│   ├── styles/             # Global CSS and Tailwind imports
-│   └── trpc/               # Client-side tRPC React Query bindings
-├── biome.jsonc             # Code style & linting configuration
-├── drizzle.config.ts       # Drizzle Kit migration & generator config
-├── next.config.js          # Next.js build configuration
-├── package.json            # Project dependencies & scripts
-├── start-database.sh       # Docker shell script for local Postgres container
-└── tsconfig.json           # TypeScript configuration
-```
+- `/src/app`: Next.js App Router pages and layouts.
+- `/src/components`: Reusable UI components (shadcn/ui, Radix, custom components).
+- `/src/hooks`: Custom React hooks.
+- `/src/lib`: Utility functions and shared libraries.
+- `/src/server`: Backend logic, tRPC routers, database schema (Drizzle).
+- `/src/store`: Zustand state stores.
+- `/src/styles`: Global CSS (Tailwind).
+- `/src/trpc`: tRPC client setup.
+- `/src/types`: Shared TypeScript definitions.
+- `/drizzle`: Database migration files.
+- `/public`: Static assets.
+- `/scripts`: Utility scripts (e.g., database wipe/setup).

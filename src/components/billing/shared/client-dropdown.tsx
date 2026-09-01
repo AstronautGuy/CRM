@@ -104,7 +104,9 @@ export function ClientDropdown({ value, onChange }: ClientDropdownProps) {
 
       {modalOpen && (
         <ClientCreationModal
-          onClientCreated={handleClientCreated}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          onSuccess={handleClientCreated}
         />
       )}
     </>

@@ -20,8 +20,8 @@ export default function ContactsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Clients</h2>
-            <p className="text-slate-400 text-sm">Manage organization leads, customer accounts, and qualification status.</p>
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">Clients</h2>
+            <p className="text-muted-foreground text-sm">Manage organization leads, customer accounts, and qualification status.</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline">Import CSV</Button>
@@ -31,8 +31,8 @@ export default function ContactsPage() {
           </div>
         </div>
 
-        <div className="flex gap-4 items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
-          <Input placeholder="Search contacts by name, email or job title..." className="max-w-md bg-slate-950 border-slate-800" />
+        <div className="flex gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
+          <Input placeholder="Search contacts by name, email or job title..." className="max-w-md bg-background border-border" />
           <Button variant="secondary" size="sm">Filter by Status</Button>
         </div>
 
@@ -43,15 +43,15 @@ export default function ContactsPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : companies?.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
-                <div className="bg-slate-900 h-16 w-16 rounded-full flex items-center justify-center mb-4">
-                  <Users className="h-8 w-8 text-slate-500" />
+                <div className="bg-secondary h-16 w-16 rounded-full flex items-center justify-center mb-4">
+                  <Users className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">No companies found</h3>
-                <p className="text-slate-400 max-w-sm mb-6">
+                <h3 className="text-xl font-bold text-foreground mb-2">No companies found</h3>
+                <p className="text-muted-foreground max-w-sm mb-6">
                   Your customer database is currently empty. Add your first company to start building your CRM.
                 </p>
                 <Button asChild>
@@ -60,8 +60,8 @@ export default function ContactsPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="border-b border-slate-800 text-xs text-slate-400 uppercase bg-slate-950/50">
+                <table className="w-full text-left text-sm text-foreground">
+                  <thead className="border-b border-border text-xs text-muted-foreground uppercase bg-muted/50">
                     <tr>
                       <th className="p-3">Company Name</th>
                       <th className="p-3">Industry</th>
@@ -71,8 +71,8 @@ export default function ContactsPage() {
                   </thead>
                   <tbody>
                     {companies?.map((company) => (
-                      <tr key={company.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
-                        <td className="p-3 font-medium text-white">{company.name}</td>
+                      <tr key={company.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                        <td className="p-3 font-medium text-foreground">{company.name}</td>
                         <td className="p-3">{company.industry || "-"}</td>
                         <td className="p-3">{company.country || "-"}</td>
                         <td className="p-3 text-right">
