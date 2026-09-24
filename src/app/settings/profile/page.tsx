@@ -168,8 +168,8 @@ export default function SettingsProfilePage() {
                 <div className="sm:w-1/3">
                   <FormLabel className="mb-2 block">Avatar Image</FormLabel>
                   <FileUploadDropzone 
-                    bucketPath="avatars"
-                    onUploadComplete={handleAvatarUpload}
+                    folder="avatars"
+                    onUploadSuccess={handleAvatarUpload}
                   />
                   {profileForm.watch("image") && (
                     <div className="mt-4">

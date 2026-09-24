@@ -37,19 +37,6 @@ export default function DashboardPage() {
   
   const { widgets, toggleWidget, reorderWidgets, resetLayout } = useDashboardStore();
 
-  useEffect(() => {
-    if (!onboardingLoading && onboardingStatus?.onboardingComplete === false) {
-      toast("Signup successful! Onboarding pending.", {
-        description: "Click here to complete setup.",
-        action: {
-          label: "Complete Onboarding",
-          onClick: () => window.location.href = "/onboarding",
-        },
-        duration: 8000,
-      });
-    }
-  }, [onboardingLoading, onboardingStatus]);
-
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   const renderWidget = (id: string) => {
