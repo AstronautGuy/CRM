@@ -16,7 +16,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [organizationName, setOrganizationName] = useState("");
   
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +53,6 @@ export default function RegisterPage() {
       email,
       phone,
       password,
-      organizationName,
     });
   };
 
@@ -87,18 +85,6 @@ export default function RegisterPage() {
                 onChange={(e) => setName(e.target.value)}
                 className="mt-1 bg-zinc-950 border-zinc-800 text-white"
                 placeholder="John Doe"
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-zinc-300">Organization / Company Name</label>
-              <Input
-                type="text"
-                required
-                value={organizationName}
-                onChange={(e) => setOrganizationName(e.target.value)}
-                className="mt-1 bg-zinc-950 border-zinc-800 text-white"
-                placeholder="Acme Corp"
               />
             </div>
 

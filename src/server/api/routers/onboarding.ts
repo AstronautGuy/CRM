@@ -36,7 +36,6 @@ export const onboardingRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Create organization
       const slug = input.name.toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Date.now().toString().slice(-4);
       
       const [org] = await ctx.db
@@ -67,10 +66,12 @@ export const onboardingRouter = createTRPCRouter({
       if (!org) {
         throw new Error("Failed to create organization");
       }
+      
+      const orgId = org.id;
 
       // Link user to organization
       await ctx.db.insert(organizationMembers).values({
-        organizationId: org.id,
+        organizationId: orgId,
         userId: ctx.session.user.id,
         role: "OWNER",
       });
@@ -81,6 +82,6 @@ export const onboardingRouter = createTRPCRouter({
         .set({ onboardingComplete: true })
         .where(eq(users.id, ctx.session.user.id));
 
-      return { success: true, organizationId: org.id };
+      return { success: true, organizationId: orgId };
     }),
 });
