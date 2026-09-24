@@ -4,9 +4,10 @@ import { ZodError } from "zod";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
-import { apiKeys } from "~/server/db/schema";
+import { apiKeys, organizationMembers } from "~/server/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import crypto from "crypto";
+import { cookies } from "next/headers";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   let session = await auth();

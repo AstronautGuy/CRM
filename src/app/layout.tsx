@@ -18,13 +18,17 @@ const geist = Geist({
 
 import { Toaster } from "@/components/ui/sonner";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
-      <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+      <body className="flex flex-col h-screen overflow-hidden">
+        <TRPCReactProvider>
+          <div className="flex-1 overflow-hidden">
+            {children}
+          </div>
+        </TRPCReactProvider>
         <Toaster />
       </body>
     </html>
