@@ -35,8 +35,5 @@
 ### Milestone 5: Public API & Webhooks (Completed)
 - [x] [Archived in v5-ROADMAP.md](./milestones/v5-ROADMAP.md)
 
-### Milestone 9: Platform Administration & Tenant Management
-- [ ] **Phase 28: Super Admin & Tenant Admin Panels**
-  - Developer/Super Admin panel at `/admin` with unique layout.
-  - Global management of tenants (organizations), users, settings, and impersonation.
-  - Dedicated Tenant Admin route (`/dashboard/admin`) for company owners to manage their workspace.
+### Milestone 9: Platform Administration & Tenant Management (Completed)
+- [x] [Archived in v9-ROADMAP.md](./milestones/v9-ROADMAP.md)
