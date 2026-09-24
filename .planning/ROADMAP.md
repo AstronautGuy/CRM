@@ -9,7 +9,7 @@
   - Implement 1-Click "Convert Quote to Invoice" functionality.
   - Add "Proforma Invoices" as a distinct document state/type.
   
-- [ ] **Phase 17: Public Document Links & PDFs**
+- [x] **Phase 17: Public Document Links & PDFs**
   - Generate secure, obscure public URLs for Quotes and Invoices (no login required for clients).
   - Build the public view page displaying the document.
   - Implement PDF generation and download from the public link.
