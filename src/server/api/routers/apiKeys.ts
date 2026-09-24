@@ -1,14 +1,19 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { apiKeys } from "~/server/db/schema";
+import { apiKeys, organizationMembers } from "~/server/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import crypto from "crypto";
 
 export const apiKeysRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
+    const member = await ctx.db.query.organizationMembers.findFirst({
+      where: eq(organizationMembers.userId, ctx.session.user.id),
+    });
+    if (!member?.organizationId) throw new Error("Unauthorized");
+    
     return ctx.db.query.apiKeys.findMany({
       where: and(
-        eq(apiKeys.organizationId, ctx.session.user.organizationId),
+        eq(apiKeys.organizationId, member.organizationId),
         isNull(apiKeys.revokedAt)
       ),
       orderBy: (keys, { desc }) => [desc(keys.createdAt)],
@@ -18,6 +23,11 @@ export const apiKeysRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
       // Generate a random key
       const rawKey = `devcrm_${crypto.randomBytes(32).toString("hex")}`;
       
@@ -26,7 +36,7 @@ export const apiKeysRouter = createTRPCRouter({
       
       // Store the hash
       const [newKey] = await ctx.db.insert(apiKeys).values({
-        organizationId: ctx.session.user.organizationId,
+        organizationId: member.organizationId,
         userId: ctx.session.user.id,
         name: input.name,
         keyHash,
@@ -44,12 +54,17 @@ export const apiKeysRouter = createTRPCRouter({
   revoke: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
       await ctx.db.update(apiKeys)
         .set({ revokedAt: new Date() })
         .where(
           and(
             eq(apiKeys.id, input.id),
-            eq(apiKeys.organizationId, ctx.session.user.organizationId)
+            eq(apiKeys.organizationId, member.organizationId)
           )
         );
       return { success: true };

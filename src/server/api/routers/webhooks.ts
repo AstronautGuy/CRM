@@ -1,11 +1,19 @@
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { svix } from "~/lib/svix";
-import { organizations } from "~/server/db/schema";
+import { organizations, organizationMembers } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const webhooksRouter = createTRPCRouter({
   getAppPortalUrl: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = ctx.session.user.organizationId;
+    const member = await ctx.db.query.organizationMembers.findFirst({
+      where: eq(organizationMembers.userId, ctx.session.user.id),
+    });
+
+    if (!member?.organizationId) {
+      throw new Error("Organization not found");
+    }
+
+    const orgId = member.organizationId;
     
     // 1. Get the organization to check if it has a svixAppId
     const org = await ctx.db.query.organizations.findFirst({

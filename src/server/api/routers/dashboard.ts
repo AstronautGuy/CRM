@@ -1,9 +1,40 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { companies, deals, invoices, crmTasks, pipelineStages, organizationMembers } from "~/server/db/schema";
+import { companies, deals, invoices, crmTasks, pipelineStages, organizationMembers, organizations, users } from "~/server/db/schema";
 import { eq, inArray, and, not, sql } from "drizzle-orm";
 
 export const dashboardRouter = createTRPCRouter({
+  getLayoutData: protectedProcedure.query(async ({ ctx }) => {
+    const member = await ctx.db.query.organizationMembers.findFirst({
+      where: eq(organizationMembers.userId, ctx.session.user.id),
+    });
+
+    let organizationName = "My Workspace";
+    if (member?.organizationId) {
+      const org = await ctx.db.query.organizations.findFirst({
+        where: eq(organizations.id, member.organizationId),
+      });
+      if (org?.name) {
+        organizationName = org.name;
+      }
+    }
+
+    const userDb = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.session.user.id)
+    });
+
+    return {
+      user: {
+        ...ctx.session.user,
+        name: userDb?.name || ctx.session.user.name,
+        email: userDb?.email || ctx.session.user.email,
+      },
+      organizationName,
+      tenantRole: member?.role ?? "MEMBER",
+      onboardingComplete: userDb?.onboardingComplete ?? false,
+    };
+  }),
+
   getMetrics: protectedProcedure.query(async ({ ctx }) => {
     const member = await ctx.db.query.organizationMembers.findFirst({
       where: eq(organizationMembers.userId, ctx.session.user.id),
@@ -11,7 +42,12 @@ export const dashboardRouter = createTRPCRouter({
     const organizationId = member?.organizationId;
 
     if (!organizationId) {
-      throw new Error("No organization ID found for user.");
+      return {
+        totalContacts: 0,
+        unpaidInvoices: 0,
+        tasksDue: 0,
+        activePipelineValue: 0,
+      };
     }
 
     const [contactsCount] = await ctx.db
