@@ -750,4 +750,128 @@ export const billingRouter = createTRPCRouter({
         lastDocument: lastDoc,
       };
     }),
+
+  // --- PAYMENTS ---
+
+  getPaymentsByInvoice: protectedProcedure
+    .input(z.object({ invoiceId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      return ctx.db.query.payments.findMany({
+        where: and(
+          eq(payments.invoiceId, input.invoiceId),
+          eq(payments.organizationId, member.organizationId)
+        ),
+        orderBy: [desc(payments.paymentDate), desc(payments.createdAt)],
+      });
+    }),
+
+  recordPayment: protectedProcedure
+    .input(
+      z.object({
+        invoiceId: z.string(),
+        amount: z.number().positive(),
+        paymentDate: z.date(),
+        paymentMethod: z.enum(["BANK_TRANSFER", "CREDIT_CARD", "CASH", "CHECK"]),
+        referenceNumber: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      const invoice = await ctx.db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.invoiceId),
+          eq(invoices.organizationId, member.organizationId)
+        ),
+      });
+
+      if (!invoice) throw new Error("Invoice not found");
+      if (invoice.status === "DRAFT") throw new Error("Cannot record payment for a draft invoice");
+
+      // 1. Record payment
+      const [payment] = await ctx.db.insert(payments).values({
+        organizationId: member.organizationId,
+        invoiceId: input.invoiceId,
+        amount: input.amount,
+        paymentDate: input.paymentDate,
+        paymentMethod: input.paymentMethod,
+        referenceNumber: input.referenceNumber,
+        notes: input.notes,
+      }).returning();
+
+      // 2. Update invoice balance and status
+      const newBalance = Math.max(0, (invoice.balanceDue || 0) - input.amount);
+      const newStatus = newBalance === 0 ? "PAID" : invoice.status;
+
+      await ctx.db.update(invoices)
+        .set({
+          balanceDue: newBalance,
+          status: newStatus,
+        })
+        .where(eq(invoices.id, invoice.id));
+
+      // 3. Send email receipt (simulated for now, webhook/email trigger)
+      await dispatchWebhook(ctx.db, member.organizationId, "invoice.payment_recorded", {
+        invoiceId: invoice.id,
+        paymentId: payment.id,
+        amount: input.amount,
+        balanceDue: newBalance,
+      }).catch(console.error);
+      // NOTE: Actual email delivery would hook into this webhook or be sent directly here
+
+      return payment;
+    }),
+
+  voidPayment: protectedProcedure
+    .input(z.object({ paymentId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      const payment = await ctx.db.query.payments.findFirst({
+        where: and(
+          eq(payments.id, input.paymentId),
+          eq(payments.organizationId, member.organizationId)
+        ),
+      });
+
+      if (!payment) throw new Error("Payment not found");
+
+      const invoice = await ctx.db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, payment.invoiceId),
+          eq(invoices.organizationId, member.organizationId)
+        ),
+      });
+
+      if (!invoice) throw new Error("Invoice not found");
+
+      // 1. Delete payment
+      await ctx.db.delete(payments).where(eq(payments.id, payment.id));
+
+      // 2. Revert invoice balance
+      const newBalance = (invoice.balanceDue || 0) + payment.amount;
+      // If it was paid, revert to SENT (or whatever status makes sense)
+      const newStatus = invoice.status === "PAID" && newBalance > 0 ? "SENT" : invoice.status;
+
+      await ctx.db.update(invoices)
+        .set({
+          balanceDue: newBalance,
+          status: newStatus,
+        })
+        .where(eq(invoices.id, invoice.id));
+
+      return { success: true };
+    }),
 });

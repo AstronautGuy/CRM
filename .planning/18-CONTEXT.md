@@ -20,3 +20,8 @@
 
 ## Deferred / Out of Scope
 - Automatic payment capturing via Stripe / Razorpay API.
+
+## Additional Decisions
+4. **Email Receipts**: Recording a payment will automatically trigger an email receipt to the client.
+5. **Payment Methods**: We will use a fixed Enum list for payment methods (`BANK_TRANSFER`, `CREDIT_CARD`, `CASH`, `CHECK`).
+6. **Mistakes/Corrections**: For the MVP, we will allow Tenant Admins to delete/void payments to reverse them, rather than requiring an append-only refund entry.

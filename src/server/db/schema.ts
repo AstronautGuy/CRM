@@ -407,7 +407,7 @@ export const quoteRelations = relations(quotes, ({ one }) => ({
   }),
 }));
 
-export const invoiceRelations = relations(invoices, ({ one }) => ({
+export const invoiceRelations = relations(invoices, ({ one, many }) => ({
   company: one(companies, {
     fields: [invoices.companyId],
     references: [companies.id],
@@ -416,10 +416,12 @@ export const invoiceRelations = relations(invoices, ({ one }) => ({
     fields: [invoices.quoteId],
     references: [quotes.id],
   }),
+  payments: many(payments),
 }));
 
 export const taskPriorityEnum = pgEnum("devcrm_task_priority", ["LOW", "MEDIUM", "HIGH", "URGENT"]);
 export const taskStatusEnum = pgEnum("devcrm_task_status", ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]);
+export const paymentMethodEnum = pgEnum("devcrm_payment_method", ["BANK_TRANSFER", "CREDIT_CARD", "CASH", "CHECK"]);
 
 export const payments = createTable("payment", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -427,10 +429,21 @@ export const payments = createTable("payment", (d) => ({
   invoiceId: d.varchar({ length: 255 }).notNull().references(() => invoices.id, { onDelete: "cascade" }),
   amount: d.integer().notNull(), // in cents
   paymentDate: d.timestamp({ withTimezone: true }).notNull(),
-  paymentMethod: d.varchar({ length: 50 }).notNull(), // e.g. BANK_TRANSFER, CASH, CREDIT_CARD
+  paymentMethod: paymentMethodEnum("paymentMethod").notNull(), // BANK_TRANSFER, CASH, CREDIT_CARD, CHECK
   referenceNumber: d.varchar({ length: 255 }), // e.g. Check number, TXN ID
   notes: d.text(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+}));
+
+export const paymentRelations = relations(payments, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [payments.invoiceId],
+    references: [invoices.id],
+  }),
+  organization: one(organizations, {
+    fields: [payments.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
 export const statements = createTable("statement", (d) => ({

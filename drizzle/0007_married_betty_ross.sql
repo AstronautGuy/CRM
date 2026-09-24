@@ -1,0 +1,2 @@
+CREATE TYPE "public"."devcrm_payment_method" AS ENUM('BANK_TRANSFER', 'CREDIT_CARD', 'CASH', 'CHECK');--> statement-breakpoint
+ALTER TABLE "devcrm_payment" ALTER COLUMN "paymentMethod" SET DATA TYPE devcrm_payment_method;

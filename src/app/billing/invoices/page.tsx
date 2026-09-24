@@ -7,6 +7,7 @@ import { Plus, MoreHorizontal, Copy, Trash2, Edit, Link as LinkIcon, DollarSign 
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
 import { RecordPaymentDialog } from "~/components/billing/record-payment-dialog";
+import { ViewPaymentsDialog } from "~/components/billing/view-payments-dialog";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -30,6 +31,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 export default function InvoicesListPage() {
   const { data: invoices, isLoading, refetch } = api.billing.getInvoices.useQuery();
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
+  const [viewPaymentsDialogOpen, setViewPaymentsDialogOpen] = React.useState(false);
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = React.useState<any>(null);
 
   const deleteMutation = api.billing.deleteInvoice.useMutation({
@@ -178,6 +180,16 @@ export default function InvoicesListPage() {
                               <DollarSign className="mr-2 h-4 w-4" /> Record Payment
                             </DropdownMenuItem>
                           )}
+                          {invoice.status !== "DRAFT" && (
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setSelectedInvoiceForPayment(invoice);
+                                setViewPaymentsDialogOpen(true);
+                              }}
+                            >
+                              <DollarSign className="mr-2 h-4 w-4" /> View Payments
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             className="text-destructive focus:text-destructive"
@@ -198,15 +210,24 @@ export default function InvoicesListPage() {
       </Card>
       
       {selectedInvoiceForPayment && (
-        <RecordPaymentDialog
-          invoiceId={selectedInvoiceForPayment.id}
-          invoiceNumber={selectedInvoiceForPayment.version > 1 ? `${selectedInvoiceForPayment.invoiceNumber}-v${selectedInvoiceForPayment.version}` : selectedInvoiceForPayment.invoiceNumber}
-          balanceDue={selectedInvoiceForPayment.balanceDue}
-          currency="USD"
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          onSuccess={() => refetch()}
-        />
+        <>
+          <RecordPaymentDialog
+            invoiceId={selectedInvoiceForPayment.id}
+            invoiceNumber={selectedInvoiceForPayment.version > 1 ? `${selectedInvoiceForPayment.invoiceNumber}-v${selectedInvoiceForPayment.version}` : selectedInvoiceForPayment.invoiceNumber}
+            balanceDue={selectedInvoiceForPayment.balanceDue}
+            currency="USD"
+            open={paymentDialogOpen}
+            onOpenChange={setPaymentDialogOpen}
+            onSuccess={() => refetch()}
+          />
+          <ViewPaymentsDialog
+            invoiceId={selectedInvoiceForPayment.id}
+            invoiceNumber={selectedInvoiceForPayment.version > 1 ? `${selectedInvoiceForPayment.invoiceNumber}-v${selectedInvoiceForPayment.version}` : selectedInvoiceForPayment.invoiceNumber}
+            open={viewPaymentsDialogOpen}
+            onOpenChange={setViewPaymentsDialogOpen}
+            onSuccess={() => refetch()}
+          />
+        </>
       )}
     </div>
   );

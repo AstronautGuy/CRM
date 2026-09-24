@@ -174,6 +174,34 @@ export function DocumentViewer({ type, data }: DocumentViewerProps) {
           </div>
         )}
 
+        {type === "invoice" && data.payments && data.payments.length > 0 && (
+          <div className="mb-8">
+            <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Payment History</h4>
+            <div className="border rounded-md overflow-hidden">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50 text-slate-500 border-b">
+                  <tr>
+                    <th className="px-4 py-2 font-medium">Date</th>
+                    <th className="px-4 py-2 font-medium">Method</th>
+                    <th className="px-4 py-2 font-medium text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {data.payments.map((p: any) => (
+                    <tr key={p.id}>
+                      <td className="px-4 py-2">{new Date(p.paymentDate).toLocaleDateString()}</td>
+                      <td className="px-4 py-2">{p.paymentMethod.replace("_", " ")}</td>
+                      <td className="px-4 py-2 text-right font-medium text-slate-700">
+                        {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(p.amount / 100)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {data.signatureData && (
           <div className="mt-16 border-t pt-8 inline-block pr-16">
             <img src={data.signatureData} alt="Signature" className="h-16 object-contain mb-2" />
