@@ -14,7 +14,7 @@
   - Build the public view page displaying the document.
   - Implement PDF generation and download from the public link.
 
-- [ ] **Phase 18: Payments & Receipts**
+- [x] **Phase 18: Payments & Receipts**
   - UI for logging partial or full payments against invoices.
   - Track payment methods and transaction IDs.
   - Generating and sending Payment Receipts.
