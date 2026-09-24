@@ -14,6 +14,7 @@ import { inventoryRouter } from "~/server/api/routers/inventory";
 import { clientSubscriptionsRouter } from "~/server/api/routers/client-subscriptions";
 import { automationsRouter } from "~/server/api/routers/automations";
 import { notificationsRouter } from "~/server/api/routers/notifications";
+import { apiKeysRouter } from "~/server/api/routers/apiKeys";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 export const appRouter = createTRPCRouter({
@@ -33,6 +34,7 @@ export const appRouter = createTRPCRouter({
   clientSubscriptions: clientSubscriptionsRouter,
   automations: automationsRouter,
   notifications: notificationsRouter,
+  apiKeys: apiKeysRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -36,6 +36,13 @@
       "when": 1788280362187,
       "tag": "0004_drop_invoice_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790262256083,
+      "tag": "0005_yielding_firestar",
+      "breakpoints": true
     }
   ]
 }

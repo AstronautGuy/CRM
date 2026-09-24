@@ -4,8 +4,40 @@ import { ZodError } from "zod";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
+import { apiKeys } from "~/server/db/schema";
+import { eq, and, isNull } from "drizzle-orm";
+import crypto from "crypto";
+
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth();
+  let session = await auth();
+
+  if (!session) {
+    const authHeader = opts.headers.get("authorization");
+    const apiKeyHeader = opts.headers.get("x-api-key");
+    const rawKey = apiKeyHeader || (authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null);
+
+    if (rawKey) {
+      const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
+      const key = await db.query.apiKeys.findFirst({
+        where: and(eq(apiKeys.keyHash, keyHash), isNull(apiKeys.revokedAt)),
+        with: { user: true }
+      });
+
+      if (key) {
+        session = {
+          user: {
+            id: key.user.id,
+            email: key.user.email,
+            name: key.user.name,
+            systemRole: key.user.systemRole,
+            organizationId: key.organizationId,
+          } as any,
+          expires: "9999-12-31T23:59:59.999Z",
+        };
+      }
+    }
+  }
+
   return {
     db,
     session,

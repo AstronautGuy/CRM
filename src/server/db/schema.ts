@@ -539,5 +539,26 @@ export const automationRules = createTable("automation_rule", (d) => ({
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
 
+// --- PUBLIC API & WEBHOOKS ---
+export const apiKeys = createTable("api_key", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: d.varchar({ length: 255 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: d.varchar({ length: 255 }).notNull(),
+  keyHash: d.text().notNull(),
+  expiresAt: d.timestamp({ withTimezone: true }),
+  revokedAt: d.timestamp({ withTimezone: true }),
+  createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
 
-
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [apiKeys.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [apiKeys.userId],
+    references: [users.id],
+  }),
+}));
