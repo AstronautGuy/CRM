@@ -18,6 +18,7 @@ export const env = createEnv({
     S3_SECRET_ACCESS_KEY: z.string().min(1),
     S3_ENDPOINT_URL: z.string().url(),
     S3_PUBLIC_URL: z.string().url().optional(),
+    SVIX_TOKEN: z.string().min(1).default("test_sk_fake_token_for_devcrm"),
   },
 
   /**
@@ -43,6 +44,7 @@ export const env = createEnv({
     S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
     S3_ENDPOINT_URL: process.env.S3_ENDPOINT_URL,
     S3_PUBLIC_URL: process.env.S3_PUBLIC_URL,
+    SVIX_TOKEN: process.env.SVIX_TOKEN,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

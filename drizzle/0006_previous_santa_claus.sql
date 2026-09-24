@@ -1,0 +1,1 @@
+ALTER TABLE "devcrm_organization" ADD COLUMN "svixAppId" varchar(255);

@@ -97,6 +97,8 @@ export const organizations = createTable("organization", (d) => ({
   addressCountry: d.varchar({ length: 100 }),
   addressPincode: d.varchar({ length: 20 }),
 
+  svixAppId: d.varchar({ length: 255 }), // Used to map the org to a Svix application for webhooks
+
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));

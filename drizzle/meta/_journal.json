@@ -43,6 +43,13 @@
       "when": 1790262256083,
       "tag": "0005_yielding_firestar",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790262677739,
+      "tag": "0006_previous_santa_claus",
+      "breakpoints": true
     }
   ]
 }

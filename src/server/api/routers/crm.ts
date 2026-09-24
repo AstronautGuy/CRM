@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { activityNotes, assignmentHistory, companies, tags, organizationMembers, contacts } from "~/server/db/schema";
 import { eq, desc, and, ilike, sql } from "drizzle-orm";
+import { dispatchWebhook } from "~/server/webhooks/dispatch";
 export const crmRouter = createTRPCRouter({
   // Contacts / POC Procedures
   getContacts: protectedProcedure
@@ -70,6 +71,9 @@ export const crmRouter = createTRPCRouter({
         organizationId: member.organizationId,
         uid 
       }).returning();
+      
+      // Dispatch webhook
+      await dispatchWebhook(member.organizationId, "client.added", { contact });
       
       return contact;
     }),
@@ -176,6 +180,9 @@ export const crmRouter = createTRPCRouter({
       if (!member?.organizationId) throw new Error("Unauthorized");
 
       const [company] = await ctx.db.insert(companies).values({ ...input, organizationId: member.organizationId }).returning();
+      
+      await dispatchWebhook(member.organizationId, "company.added", { company });
+      
       return company;
     }),
 

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { invoices, products, quotes, organizationMembers, userSettings, payments, statements } from "~/server/db/schema";
 import { eq, desc, and, like, lt, lte, gte } from "drizzle-orm";
+import { dispatchWebhook } from "~/server/webhooks/dispatch";
 
 async function saveDocumentPattern(
   ctx: any, 
@@ -320,6 +321,9 @@ export const billingRouter = createTRPCRouter({
         dueDate: quote.dueDate || new Date(),
       }).returning();
 
+      // Dispatch webhook
+      await dispatchWebhook(member.organizationId, "invoice.created", { invoice: newInvoice });
+
       return newInvoice;
     }),
     
@@ -471,6 +475,12 @@ export const billingRouter = createTRPCRouter({
         status: isPaid ? "PAID" : invoice.status, // Don't override if it's SENT/PROFORMA, just if paid
         paidAt: isPaid ? new Date() : null,
       }).where(eq(invoices.id, invoice.id));
+
+      await dispatchWebhook(member.organizationId, "invoice.payment_recorded", { payment, invoiceId: invoice.id, isPaid });
+      
+      if (isPaid) {
+        await dispatchWebhook(member.organizationId, "invoice.paid", { invoiceId: invoice.id });
+      }
 
       return payment;
     }),

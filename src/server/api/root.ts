@@ -15,6 +15,7 @@ import { clientSubscriptionsRouter } from "~/server/api/routers/client-subscript
 import { automationsRouter } from "~/server/api/routers/automations";
 import { notificationsRouter } from "~/server/api/routers/notifications";
 import { apiKeysRouter } from "~/server/api/routers/apiKeys";
+import { webhooksRouter } from "~/server/api/routers/webhooks";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 export const appRouter = createTRPCRouter({
@@ -35,6 +36,7 @@ export const appRouter = createTRPCRouter({
   automations: automationsRouter,
   notifications: notificationsRouter,
   apiKeys: apiKeysRouter,
+  webhooks: webhooksRouter,
 });
 
 export type AppRouter = typeof appRouter;
