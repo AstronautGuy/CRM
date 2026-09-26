@@ -11,7 +11,7 @@
 - [x] **Phase 22: Recurring Subscriptions (Completed as Phase 21)**
 
 ### Milestone 8: Marketing, Automations & Analytics (Current)
-- [ ] **Phase 23: Reminders & Automations**
+- [x] **Phase 23: Reminders & Automations**
   - Invoice and Quote automated email follow-ups.
   - Custom drip campaigns and internal staff alerts.
 - [ ] **Phase 24: Catalogues & Ads**
