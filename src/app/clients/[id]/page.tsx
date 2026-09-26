@@ -9,6 +9,8 @@ import { Button } from "~/components/ui/button";
 import { Loader2, ArrowLeft, Building2, MapPin, Mail, Phone, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { LedgerView } from "~/components/billing/ledger-view";
 
 export default function ClientProfilePage() {
   const params = useParams();
@@ -68,8 +70,15 @@ export default function ClientProfilePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ledger">Ledger & Statements</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
@@ -208,6 +217,12 @@ export default function ClientProfilePage() {
             </Card>
           </div>
         </div>
+        </TabsContent>
+
+        <TabsContent value="ledger">
+          <LedgerView companyId={clientId} />
+        </TabsContent>
+      </Tabs>
       </div>
     </DashboardLayout>
   );

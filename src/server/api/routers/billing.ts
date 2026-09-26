@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { invoices, products, quotes, organizationMembers, userSettings, payments, statements } from "~/server/db/schema";
-import { eq, desc, and, like, lt, lte, gte } from "drizzle-orm";
+import { eq, desc, and, like, lt, lte, gte, inArray } from "drizzle-orm";
 import { dispatchWebhook } from "~/server/webhooks/dispatch";
 
 async function saveDocumentPattern(
@@ -873,5 +873,208 @@ export const billingRouter = createTRPCRouter({
         .where(eq(invoices.id, invoice.id));
 
       return { success: true };
+    }),
+
+  // --- STATEMENTS & LEDGER ---
+
+  getLedger: protectedProcedure
+    .input(z.object({
+      companyId: z.string(),
+      startDate: z.date(),
+      endDate: z.date(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      // Fetch all non-draft invoices for company
+      const companyInvoices = await ctx.db.query.invoices.findMany({
+        where: and(
+          eq(invoices.companyId, input.companyId),
+          eq(invoices.organizationId, member.organizationId)
+        ),
+      });
+      const validInvoices = companyInvoices.filter(i => i.status !== "DRAFT");
+      const invoiceIds = validInvoices.map(i => i.id);
+
+      let companyPayments: any[] = [];
+      if (invoiceIds.length > 0) {
+        companyPayments = await ctx.db.query.payments.findMany({
+          where: and(
+            inArray(payments.invoiceId, invoiceIds),
+            eq(payments.organizationId, member.organizationId)
+          ),
+        });
+      }
+
+      let openingBalance = 0;
+      let closingBalance = 0;
+      const transactions: any[] = [];
+
+      // Calculate Opening Balance (events strictly before startDate)
+      for (const inv of validInvoices) {
+        if (inv.createdAt < input.startDate) {
+          openingBalance += (inv.totalAmount || 0);
+        } else if (inv.createdAt >= input.startDate && inv.createdAt <= input.endDate) {
+          transactions.push({
+            id: inv.id,
+            type: "INVOICE",
+            date: inv.createdAt,
+            description: `Invoice ${inv.invoiceNumber}`,
+            amount: inv.totalAmount || 0,
+            isDebit: true,
+          });
+        }
+      }
+
+      for (const p of companyPayments) {
+        if (p.paymentDate < input.startDate) {
+          openingBalance -= p.amount;
+        } else if (p.paymentDate >= input.startDate && p.paymentDate <= input.endDate) {
+          transactions.push({
+            id: p.id,
+            type: "PAYMENT",
+            date: p.paymentDate,
+            description: `Payment - ${p.paymentMethod.replace("_", " ")}`,
+            amount: p.amount,
+            isDebit: false,
+          });
+        }
+      }
+
+      // Sort transactions chronologically
+      transactions.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      // Calculate running balance and closing balance
+      let currentBalance = openingBalance;
+      for (const t of transactions) {
+        if (t.isDebit) {
+          currentBalance += t.amount;
+        } else {
+          currentBalance -= t.amount;
+        }
+        t.balance = currentBalance;
+      }
+      closingBalance = currentBalance;
+
+      return {
+        openingBalance,
+        closingBalance,
+        transactions,
+      };
+    }),
+
+  generateStatement: protectedProcedure
+    .input(z.object({
+      companyId: z.string(),
+      startDate: z.date(),
+      endDate: z.date(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      // We call the same internal logic via a helper or just re-execute the ledger fetch here.
+      // Since it's a backend mutation, we can just re-fetch in memory.
+      const companyInvoices = await ctx.db.query.invoices.findMany({
+        where: and(
+          eq(invoices.companyId, input.companyId),
+          eq(invoices.organizationId, member.organizationId)
+        ),
+      });
+      const validInvoices = companyInvoices.filter(i => i.status !== "DRAFT");
+      const invoiceIds = validInvoices.map(i => i.id);
+
+      let companyPayments: any[] = [];
+      if (invoiceIds.length > 0) {
+        companyPayments = await ctx.db.query.payments.findMany({
+          where: and(
+            inArray(payments.invoiceId, invoiceIds),
+            eq(payments.organizationId, member.organizationId)
+          ),
+        });
+      }
+
+      let openingBalance = 0;
+      const transactions: any[] = [];
+
+      for (const inv of validInvoices) {
+        if (inv.createdAt < input.startDate) {
+          openingBalance += (inv.totalAmount || 0);
+        } else if (inv.createdAt >= input.startDate && inv.createdAt <= input.endDate) {
+          transactions.push({
+            id: inv.id,
+            type: "INVOICE",
+            date: inv.createdAt.toISOString(),
+            description: `Invoice ${inv.invoiceNumber}`,
+            amount: inv.totalAmount || 0,
+            isDebit: true,
+          });
+        }
+      }
+
+      for (const p of companyPayments) {
+        if (p.paymentDate < input.startDate) {
+          openingBalance -= p.amount;
+        } else if (p.paymentDate >= input.startDate && p.paymentDate <= input.endDate) {
+          transactions.push({
+            id: p.id,
+            type: "PAYMENT",
+            date: p.paymentDate.toISOString(),
+            description: `Payment - ${p.paymentMethod.replace("_", " ")}`,
+            amount: p.amount,
+            isDebit: false,
+          });
+        }
+      }
+
+      // Sort
+      transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      let currentBalance = openingBalance;
+      for (const t of transactions) {
+        if (t.isDebit) currentBalance += t.amount;
+        else currentBalance -= t.amount;
+        t.balance = currentBalance;
+      }
+      const closingBalance = currentBalance;
+
+      // Generate sequential statement number
+      const dateStr = new Date().toISOString().replace(/[-T:.Z]/g, "").slice(0, 14);
+      const statementNumber = `STMT-${dateStr}`;
+
+      const [stmt] = await ctx.db.insert(statements).values({
+        organizationId: member.organizationId,
+        companyId: input.companyId,
+        statementNumber,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        openingBalance,
+        closingBalance,
+        transactions, // frozen JSONB
+      }).returning();
+
+      return stmt;
+    }),
+
+  getStatementsByCompany: protectedProcedure
+    .input(z.object({ companyId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const member = await ctx.db.query.organizationMembers.findFirst({
+        where: eq(organizationMembers.userId, ctx.session.user.id),
+      });
+      if (!member?.organizationId) throw new Error("Unauthorized");
+
+      return ctx.db.query.statements.findMany({
+        where: and(
+          eq(statements.companyId, input.companyId),
+          eq(statements.organizationId, member.organizationId)
+        ),
+        orderBy: [desc(statements.createdAt)],
+      });
     }),
 });

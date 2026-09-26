@@ -17,3 +17,8 @@
 
 ## Deferred / Out of Scope
 - Automated scheduled statement generation and dispatch via email.
+
+## Additional Decisions
+4. **UI Location**: The Party Ledger and statement generation will reside inside the existing Client/Company detail view, specifically under a new tab: `/crm/companies/[id]`.
+5. **Date Range**: We will provide a manual date range picker with convenient presets (e.g., Last Month, YTD) when generating a statement.
+6. **Data Immutability**: Generated statements will be frozen snapshots. The `transactions` JSONB column in the `statements` table will store the historical ledger exactly as it was when generated, ensuring past statements never retroactively change even if underlying invoices/payments are modified later.
