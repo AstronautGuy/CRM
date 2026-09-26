@@ -1,0 +1,3 @@
+ALTER TABLE "devcrm_contact" ADD COLUMN "adCampaignId" varchar(255);--> statement-breakpoint
+ALTER TABLE "devcrm_product" ADD COLUMN "isPublic" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "devcrm_contact" ADD CONSTRAINT "devcrm_contact_adCampaignId_devcrm_ad_campaign_id_fk" FOREIGN KEY ("adCampaignId") REFERENCES "public"."devcrm_ad_campaign"("id") ON DELETE set null ON UPDATE no action;

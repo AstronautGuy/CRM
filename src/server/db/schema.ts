@@ -220,6 +220,8 @@ export const contacts = createTable("contact", (d) => ({
   addressStreet: d.text(),
   addressZip: d.varchar({ length: 20 }),
   
+  adCampaignId: d.varchar({ length: 255 }).references(() => adCampaigns.id, { onDelete: "set null" }),
+
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
@@ -298,6 +300,7 @@ export const products = createTable("product", (d) => ({
   unitPrice: d.integer().notNull(), // in cents
   unit: d.varchar({ length: 50 }),
   stockQuantity: d.integer().default(0).notNull(),
+  isPublic: d.boolean().default(false).notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
 }));
 

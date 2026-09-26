@@ -14,7 +14,6 @@ import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Badge } from "~/components/ui/badge";
-import { useEffect } from "react";
 
 function KPICard({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) {
   return (
@@ -33,10 +32,10 @@ function KPICard({ title, value, icon: Icon }: { title: string; value: string | 
 export default function DashboardPage() {
   const { data: metrics, isLoading: metricsLoading } = api.dashboard.getMetrics.useQuery();
   const { data: activity } = api.dashboard.getRecentActivity.useQuery();
-  const { data: onboardingStatus, isLoading: onboardingLoading } = api.onboarding.getStatus.useQuery();
+  const { data: onboardingStatus } = api.onboarding.getStatus.useQuery();
+  const { data: reportingData, isLoading: reportingLoading } = api.reporting.getDashboardMetrics.useQuery();
   
-  const { widgets, toggleWidget, reorderWidgets, resetLayout } = useDashboardStore();
-
+  const { widgets, toggleWidget, resetLayout } = useDashboardStore();
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   const renderWidget = (id: string) => {
@@ -50,25 +49,20 @@ export default function DashboardPage() {
       case "kpi-tasks":
         return <KPICard title="Tasks Due" value={metricsLoading ? "..." : metrics?.tasksDue ?? 0} icon={CheckSquare} />;
       case "chart-pipeline":
-        // Mock data for MVP chart
-        const chartData = [
-          { name: "New", value: 400 },
-          { name: "Qualified", value: 300 },
-          { name: "Proposal", value: 200 },
-          { name: "Negotiation", value: 100 },
-        ];
+        const chartData = reportingData?.chartData || [];
         return (
           <Card className="col-span-full md:col-span-2 h-96">
             <CardHeader>
-              <CardTitle>Pipeline Overview</CardTitle>
+              <CardTitle>Revenue Forecast vs Actual</CardTitle>
             </CardHeader>
             <CardContent className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
-                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
                   <Tooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--card-foreground))'}} />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" name="Actual Revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="expected" name="Forecast" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} opacity={0.3} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -106,84 +100,83 @@ export default function DashboardPage() {
     }
   };
 
-  const activeWidgets = widgets.filter((w) => w.visible);
-  
-  // Separate KPI cards from full-width cards for layout
-  const kpiWidgets = activeWidgets.filter(w => w.id.startsWith('kpi-'));
-  const fullWidgets = activeWidgets.filter(w => !w.id.startsWith('kpi-'));
-
   return (
     <DashboardLayout>
-      {!onboardingLoading && onboardingStatus?.onboardingComplete === false && (
-        <Alert className="mb-6 border-amber-500/50 bg-amber-500/10 text-amber-200">
-          <AlertCircle className="h-4 w-4 stroke-amber-500" />
-          <AlertTitle className="text-amber-500 font-semibold">Action Required</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>Please complete your company onboarding to unlock all CRM features.</span>
-            <Button variant="outline" size="sm" className="border-amber-500/50 hover:bg-amber-500/20 text-amber-200" asChild>
-              <Link href="/onboarding">Complete Setup <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight">Dashboard Overview</h2>
-          <p className="text-muted-foreground text-sm">Welcome back to your CRM workspace.</p>
-        </div>
-        
-        <Popover open={customizeOpen} onOpenChange={setCustomizeOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Settings2 className="h-4 w-4" />
-              Customize Layout
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 p-4 bg-popover border-border">
-            <h4 className="font-semibold text-popover-foreground mb-4">Dashboard Widgets</h4>
-            <div className="space-y-2">
-              {widgets.map((widget, index) => (
-                <div key={widget.id} className="flex items-center justify-between p-2 rounded-md bg-secondary border border-border">
-                  <span className="text-sm text-secondary-foreground truncate pr-2">{widget.title}</span>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => toggleWidget(widget.id)}>
-                      {widget.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={index === 0} onClick={() => reorderWidgets(index, index - 1)}>
-                      <ArrowUp className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={index === widgets.length - 1} onClick={() => reorderWidgets(index, index + 1)}>
-                      <ArrowDown className="h-3 w-3" />
-                    </Button>
+      <div className="flex flex-col gap-8 p-4 md:p-8">
+        {onboardingStatus?.requiresSetup && (
+          <Alert className="bg-primary/5 border-primary/20 text-primary">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Welcome to DevCRM!</AlertTitle>
+            <AlertDescription className="flex items-center justify-between mt-2">
+              <span>Your account requires some initial setup before you can fully utilize all features.</span>
+              <Button asChild variant="outline" size="sm" className="ml-4">
+                <Link href="/onboarding">Complete Setup <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Advanced Dashboard</h1>
+            <p className="text-muted-foreground">Comprehensive insights across your organization.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Popover open={customizeOpen} onOpenChange={setCustomizeOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  Customize Layout
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="end">
+                <div className="space-y-4">
+                  <h4 className="font-medium leading-none">Dashboard Widgets</h4>
+                  <div className="flex flex-col gap-2">
+                    {widgets.map((w) => (
+                      <div key={w.id} className="flex items-center justify-between">
+                        <span className="text-sm">{w.title}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleWidget(w.id)}
+                          className={w.visible ? "text-emerald-500" : "text-slate-400"}
+                        >
+                          {w.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    ))}
                   </div>
+                  <Button variant="secondary" className="w-full text-xs" onClick={resetLayout}>
+                    Reset Layout
+                  </Button>
                 </div>
-              ))}
-            </div>
-            <Button variant="ghost" size="sm" className="w-full mt-4 text-xs text-muted-foreground hover:text-foreground" onClick={resetLayout}>
-              Reset to Default
-            </Button>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="space-y-6">
-        {/* KPI Grid */}
-        {kpiWidgets.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {kpiWidgets.map(w => (
-              <React.Fragment key={w.id}>{renderWidget(w.id)}</React.Fragment>
-            ))}
+              </PopoverContent>
+            </Popover>
           </div>
-        )}
+        </div>
 
-        {/* Charts & Tables Grid */}
-        {fullWidgets.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {fullWidgets.map(w => (
-              <React.Fragment key={w.id}>{renderWidget(w.id)}</React.Fragment>
-            ))}
-          </div>
-        )}
+        {/* Dynamic Legacy Widgets */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {widgets.filter((w) => w.id.startsWith("kpi-") && w.visible).map((w) => (
+            <React.Fragment key={w.id}>
+              {renderWidget(w.id)}
+            </React.Fragment>
+          ))}
+          {/* New Advanced Reporting KPIs */}
+          <KPICard title="Total Revenue" value={reportingLoading ? "..." : `$${((reportingData?.financials.totalRevenue ?? 0) / 100).toFixed(2)}`} icon={FileText} />
+          <KPICard title="Outstanding Balance" value={reportingLoading ? "..." : `$${((reportingData?.financials.outstandingBalance ?? 0) / 100).toFixed(2)}`} icon={ArrowDown} />
+          <KPICard title="Sales Win Rate" value={reportingLoading ? "..." : `${(reportingData?.sales.winRate ?? 0).toFixed(1)}%`} icon={CheckSquare} />
+          <KPICard title="Marketing CPL" value={reportingLoading ? "..." : `$${((reportingData?.marketing.cpl ?? 0) / 100).toFixed(2)}`} icon={ArrowUp} />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-4">
+          {widgets.filter((w) => !w.id.startsWith("kpi-") && w.visible).map((w) => (
+            <React.Fragment key={w.id}>
+              {renderWidget(w.id)}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -25,6 +25,7 @@ export const inventoryRouter = createTRPCRouter({
       unitPrice: z.number().min(0),
       unit: z.string().optional(),
       stockQuantity: z.number().min(0).default(0),
+      isPublic: z.boolean().default(false),
     }))
     .mutation(async ({ ctx, input }) => {
       const member = await ctx.db.query.organizationMembers.findFirst({
@@ -50,6 +51,7 @@ export const inventoryRouter = createTRPCRouter({
       unitPrice: z.number().min(0),
       unit: z.string().optional(),
       stockQuantity: z.number().min(0),
+      isPublic: z.boolean().default(false),
     }))
     .mutation(async ({ ctx, input }) => {
       const member = await ctx.db.query.organizationMembers.findFirst({

@@ -1,5 +1,5 @@
 # Current State
 
-- **Milestone:** 8
-- **Phase:** 24
-- **Focus:** Catalogues & Ads
+- **Milestone:** 9
+- **Phase:** Setup
+- **Focus:** Platform Administration & Tenant Management

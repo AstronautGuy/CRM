@@ -4,6 +4,7 @@ import { billingRouter } from "~/server/api/routers/billing";
 import { crmRouter } from "~/server/api/routers/crm";
 import { dealsRouter } from "~/server/api/routers/deals";
 import { marketingRouter } from "~/server/api/routers/marketing";
+import { reportingRouter } from "~/server/api/routers/reporting";
 
 import { authRouter } from "~/server/api/routers/auth";
 import { dashboardRouter } from "~/server/api/routers/dashboard";
@@ -39,6 +40,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   apiKeys: apiKeysRouter,
   webhooks: webhooksRouter,
+  reporting: reportingRouter,
 });
 
 export type AppRouter = typeof appRouter;

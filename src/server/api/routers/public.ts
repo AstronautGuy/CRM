@@ -88,4 +88,93 @@ export const publicRouter = createTRPCRouter({
 
       return statement;
     }),
+
+  getCatalogue: publicProcedure
+    .input(z.object({ orgId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const org = await ctx.db.query.organizations.findFirst({
+        where: eq(ctx.db.schema.organizations.id, input.orgId),
+      });
+      if (!org) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const catalogProducts = await ctx.db.query.products.findMany({
+        where: and(
+          eq(ctx.db.schema.products.organizationId, input.orgId),
+          eq(ctx.db.schema.products.isPublic, true)
+        ),
+      });
+
+      return {
+        organization: org,
+        products: catalogProducts,
+      };
+    }),
+
+  submitQuoteRequest: publicProcedure
+    .input(z.object({
+      orgId: z.string(),
+      name: z.string(),
+      email: z.string(),
+      phone: z.string().optional(),
+      items: z.array(z.object({
+        productId: z.string(),
+        quantity: z.number(),
+        price: z.number()
+      })),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { orgId, name, email, phone, items } = input;
+      
+      // Upsert contact based on email
+      let contact = await ctx.db.query.contacts.findFirst({
+        where: and(
+          eq(ctx.db.schema.contacts.organizationId, orgId),
+          eq(ctx.db.schema.contacts.email, email)
+        ),
+      });
+
+      if (!contact) {
+        const parts = name.split(' ');
+        const [newContact] = await ctx.db.insert(ctx.db.schema.contacts).values({
+          organizationId: orgId,
+          firstName: parts[0],
+          lastName: parts.slice(1).join(' '),
+          email: email,
+          phone: phone,
+          source: "PUBLIC_CATALOGUE"
+        }).returning();
+        contact = newContact;
+      }
+
+      const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const quoteNumber = `QTR-${Date.now().toString().slice(-6)}`;
+
+      // Create Quote
+      const [quote] = await ctx.db.insert(ctx.db.schema.quotes).values({
+        organizationId: orgId,
+        quoteNumber,
+        companyId: contact.companyId,
+        contactId: contact.id,
+        status: "REQUESTED",
+        subtotal: totalAmount,
+        totalAmount: totalAmount,
+      }).returning();
+
+      // Create Notification for the org
+      const orgUsers = await ctx.db.query.organizationMembers.findMany({
+        where: eq(ctx.db.schema.organizationMembers.organizationId, orgId),
+      });
+      
+      for (const member of orgUsers) {
+        await ctx.db.insert(ctx.db.schema.notifications).values({
+          organizationId: orgId,
+          userId: member.userId,
+          title: "New Quote Request",
+          message: `${name} requested a quote for ${items.length} items.`,
+          link: `/crm/quotes/${quote.id}`,
+        });
+      }
+
+      return { success: true, quoteId: quote.id };
+    }),
 });

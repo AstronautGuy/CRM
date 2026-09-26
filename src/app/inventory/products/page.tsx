@@ -47,6 +47,7 @@ export default function ProductsPage() {
   const [unitPrice, setUnitPrice] = useState("");
   const [unit, setUnit] = useState("");
   const [stockQuantity, setStockQuantity] = useState("0");
+  const [isPublic, setIsPublic] = useState(false);
 
   const createMutation = api.inventory.createProduct.useMutation({
     onSuccess: () => {
@@ -84,6 +85,7 @@ export default function ProductsPage() {
       setUnitPrice((item.unitPrice / 100).toString());
       setUnit(item.unit || "");
       setStockQuantity(item.stockQuantity.toString());
+      setIsPublic(item.isPublic || false);
     } else {
       setEditingItem(null);
       setName("");
@@ -93,6 +95,7 @@ export default function ProductsPage() {
       setUnitPrice("");
       setUnit("pcs");
       setStockQuantity("0");
+      setIsPublic(false);
     }
     setDialogOpen(true);
   };
@@ -112,6 +115,7 @@ export default function ProductsPage() {
         unitPrice: priceCents,
         unit: unit || undefined,
         stockQuantity: type === "PRODUCT" ? stock : 0,
+        isPublic,
       });
     } else {
       createMutation.mutate({
@@ -122,6 +126,7 @@ export default function ProductsPage() {
         unitPrice: priceCents,
         unit: unit || undefined,
         stockQuantity: type === "PRODUCT" ? stock : 0,
+        isPublic,
       });
     }
   };
@@ -162,6 +167,7 @@ export default function ProductsPage() {
                 <TableHead>Description</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Inventory</TableHead>
+                <TableHead>Public Catalogue</TableHead>
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -208,6 +214,13 @@ export default function ProductsPage() {
                         </div>
                       ) : (
                         <span className="text-slate-400 text-xs italic">N/A</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {item.isPublic ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-500">Visible</Badge>
+                      ) : (
+                        <Badge variant="secondary">Hidden</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -289,6 +302,12 @@ export default function ProductsPage() {
                   <Input type="number" step="1" required value={stockQuantity} onChange={e => setStockQuantity(e.target.value)} />
                 </div>
               )}
+            </div>
+            <div className="space-y-2 flex flex-col justify-end pb-2">
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="rounded border-gray-300" />
+                <span className="text-sm font-medium leading-none">Visible in Public Catalogue</span>
+              </label>
             </div>
 
             <DialogFooter className="pt-4">
