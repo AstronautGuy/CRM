@@ -2,17 +2,13 @@
 
 ## Locked Decisions
 
-1. **Scope of Reminders**:
-   - The system must support a wide variety of entities: Invoice Reminders, Subscription Renewals, Deal/Pipeline Follow-ups, and Custom Task Reminders.
-
-2. **Delivery Mechanism**:
-   - For Phase 23, delivery will be strictly in-app. Reminders and triggered automations will generate notifications or alerts visible directly on the user's Dashboard. External delivery (like automated emails) is deferred to a future iteration.
-
-3. **Automation Rules Engine**:
-   - We will not rely solely on hardcoded defaults. Instead, we will provide a full UI for users to build custom automation rules.
-   - Users should be able to define trigger conditions (e.g., "3 days before an Invoice is due", "When a Subscription expires") and define the resulting action (e.g., "Create a high-priority dashboard alert", "Create a follow-up task").
+1. **Automation Engine Architecture**: We will expose a secure API route (e.g., `/api/cron/process-automations`) that iterates through active rules and processes them. This ensures compatibility with serverless environments (like Vercel) where an external cron service can reliably ping the endpoint on a schedule (e.g., hourly).
+2. **Drip Campaign & Rule Complexity**: For the initial release, we will stick to single-step scheduled rules to keep the UX clean and the engine reliable. Example: "Send 'Follow-up' email 3 days after Quote status changes to Sent." We will avoid multi-step visual workflow builders (Wait -> Condition -> Action) for now.
+3. **Email Dispatch**: We will mock the actual email dispatching for this phase to focus purely on the automation engine logic, rule processing, and internal state. Sent emails will be logged to the console and stored in a new `communications` (or `sent_emails`) table for visibility in the CRM without requiring active API keys.
+4. **Internal Staff Alerts**: Will be implemented as a new notification table/system, triggered by the same cron engine or via event listeners, and displayed in the UI.
 
 ## Technical Architecture Thoughts
-- We'll need a new database table `devcrm_automation_rule` to store the user-defined logic (Trigger Type, Trigger Condition, Target Entity, Action Payload).
-- We'll need a table `devcrm_notification` or `devcrm_reminder` to store the generated alerts that get displayed on the dashboard.
-- A background or on-demand evaluation mechanism will be required to check if any rules match current system state (e.g., checking due dates) and generate the appropriate alerts.
+- We'll need a new database table `automationRules` to store the user-defined logic (Trigger Type, Trigger Condition, Target Entity, Action Payload).
+- We'll need a table `automationLogs` to track when an automation was successfully executed on a specific entity to prevent duplicate firing.
+- We'll need a `communications` table to store mocked dispatched emails.
+- We'll need a `notifications` table to store internal staff alerts.

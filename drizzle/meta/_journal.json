@@ -57,6 +57,13 @@
       "when": 1790271825121,
       "tag": "0007_married_betty_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790437668349,
+      "tag": "0008_solid_vivisector",
+      "breakpoints": true
     }
   ]
 }

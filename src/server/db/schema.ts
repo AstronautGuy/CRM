@@ -535,12 +535,13 @@ export const notifications = createTable("notification", (d) => ({
   userId: d.varchar({ length: 255 }).notNull().references(() => users.id, { onDelete: "cascade" }),
   title: d.varchar({ length: 255 }).notNull(),
   message: d.text().notNull(),
+  link: d.varchar({ length: 255 }),
   isRead: d.boolean().default(false).notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
 }));
 
-export const automationTriggerEnum = pgEnum("devcrm_automation_trigger", ["INVOICE_DUE", "SUBSCRIPTION_RENEWAL", "DEAL_STALLED"]);
-export const automationActionEnum = pgEnum("devcrm_automation_action", ["CREATE_NOTIFICATION", "CREATE_TASK"]);
+export const automationTriggerEnum = pgEnum("devcrm_automation_trigger", ["INVOICE_DUE", "SUBSCRIPTION_RENEWAL", "DEAL_STALLED", "QUOTE_SENT"]);
+export const automationActionEnum = pgEnum("devcrm_automation_action", ["CREATE_NOTIFICATION", "CREATE_TASK", "SEND_EMAIL", "INTERNAL_ALERT"]);
 
 export const automationRules = createTable("automation_rule", (d) => ({
   id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -549,9 +550,29 @@ export const automationRules = createTable("automation_rule", (d) => ({
   triggerType: automationTriggerEnum("trigger_type").notNull(),
   daysOffset: d.integer().default(0).notNull(), // e.g. -7 for 7 days before
   actionType: automationActionEnum("action_type").notNull(),
+  actionPayload: d.jsonb().default({}).notNull(),
   isActive: d.boolean().default(true).notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
+
+export const automationLogs = createTable("automation_log", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  ruleId: d.varchar({ length: 255 }).notNull().references(() => automationRules.id, { onDelete: "cascade" }),
+  targetEntityId: d.varchar({ length: 255 }).notNull(),
+  executedAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
+}));
+
+export const communications = createTable("communication", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: d.varchar({ length: 255 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  companyId: d.varchar({ length: 255 }).references(() => companies.id, { onDelete: "cascade" }),
+  targetEntityId: d.varchar({ length: 255 }),
+  type: d.varchar({ length: 50 }).notNull(), // e.g. "EMAIL"
+  subject: d.varchar({ length: 255 }).notNull(),
+  body: d.text().notNull(),
+  sentAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
 }));
 
 // --- PUBLIC API & WEBHOOKS ---

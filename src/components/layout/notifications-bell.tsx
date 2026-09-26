@@ -66,7 +66,9 @@ export function NotificationsBell() {
                   }}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-semibold text-foreground leading-none">{notif.title}</p>
+                    <p className="text-sm font-semibold text-foreground leading-none">
+                      {notif.link ? <a href={notif.link} className="hover:underline">{notif.title}</a> : notif.title}
+                    </p>
                     {!notif.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-0.5" />}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1.5">{notif.message}</p>
