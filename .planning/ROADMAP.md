@@ -16,5 +16,5 @@
 ### Milestone 5: Public API & Webhooks (Completed)
 - [x] [Archived in v5-ROADMAP.md](./milestones/v5-ROADMAP.md)
 
-### Milestone 9: Platform Administration & Tenant Management (Current)
+### Milestone 9: Platform Administration & Tenant Management (Completed)
 - [x] [Archived in v9-ROADMAP.md](./milestones/v9-ROADMAP.md)

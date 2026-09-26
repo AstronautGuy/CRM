@@ -1,21 +1,12 @@
-# Milestone 9 Archive: Platform Administration & Tenant Management
+# Milestone 9: Platform Administration & Tenant Management (Archived)
 
-**Status:** Completed
-**Phases:** Phase 28
+## Phases
+- [x] **Phase 26: Super Admin Infrastructure & Health Metrics**
+  - Super Admin role and protected routing.
+  - System health and global platform revenue metrics.
+- [x] **Phase 27: Tenant Management & Global Settings**
+  - Tenant list view with suspend/delete capabilities.
+  - Global feature flag and settings management.
 
-## Key Accomplishments
-1. Built a distinct, protected `/admin` layout for Super Admins with global data tables for users and organizations.
-2. Implemented the `/dashboard/admin` layout guard strictly for Tenant Admins (`OWNER` / `ADMIN`).
-3. Decoupled Organization creation from authentication, moving it strictly into the onboarding flow.
-4. Added an onboarding state guard to all workspace features, effectively soft-blocking un-onboarded users.
-
-## Original Scope
-### Milestone 9: Platform Administration & Tenant Management
-- [x] **Phase 28: Super Admin & Tenant Admin Panels**
-  - Developer/Super Admin panel at `/admin` with unique layout.
-  - Global management of tenants (organizations), users, settings, and impersonation.
-  - Dedicated Tenant Admin route (`/dashboard/admin`) for company owners to manage their workspace.
-
-## Audit & Verification
-- See [v9-MILESTONE-AUDIT.md](../v9-MILESTONE-AUDIT.md) for full audit details.
-- Impersonation feature was deferred to a future tech-debt phase.
+## Archival Notes
+All requirements for Milestone 9 have been met. See `v9-REQUIREMENTS.md` and `v9-MILESTONE-AUDIT.md` for full completion audits.

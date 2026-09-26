@@ -71,6 +71,13 @@
       "when": 1790438213078,
       "tag": "0009_cute_mockingbird",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790439294030,
+      "tag": "0010_serious_bastion",
+      "breakpoints": true
     }
   ]
 }

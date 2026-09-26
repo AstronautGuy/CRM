@@ -76,6 +76,7 @@ export const organizations = createTable("organization", (d) => ({
   name: d.varchar({ length: 255 }).notNull(),
   slug: d.varchar({ length: 255 }).notNull().unique(),
   logoUrl: d.text(),
+  isActive: d.boolean().default(true).notNull(),
   
   // Advanced Onboarding Fields
   displayName: d.varchar({ length: 255 }),
@@ -600,4 +601,12 @@ export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
     fields: [apiKeys.userId],
     references: [users.id],
   }),
+}));
+
+// --- GLOBAL SETTINGS ---
+export const globalSettings = createTable("global_settings", (d) => ({
+  id: d.varchar({ length: 255 }).notNull().primaryKey().default("default"),
+  maintenanceMode: d.boolean().default(false).notNull(),
+  enableBetaFeatures: d.boolean().default(false).notNull(),
+  updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
