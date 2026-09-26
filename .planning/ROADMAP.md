@@ -19,7 +19,7 @@
   - Track payment methods and transaction IDs.
   - Generating and sending Payment Receipts.
 
-- [ ] **Phase 19: Party Ledger & Statements**
+- [x] **Phase 19: Party Ledger & Statements**
   - A dedicated view for each Client showing a running ledger of invoices, payments, and outstanding balances.
 
 ### Milestone 7: Catalog, Inventory & Subscriptions (Completed)
