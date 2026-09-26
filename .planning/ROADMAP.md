@@ -12,8 +12,14 @@
 
 ### Milestone 8: Marketing, Automations & Analytics (Current)
 - [ ] **Phase 23: Reminders & Automations**
+  - Invoice and Quote automated email follow-ups.
+  - Custom drip campaigns and internal staff alerts.
 - [ ] **Phase 24: Catalogues & Ads**
+  - Public product catalogues with storefront checkout.
+  - Integration with Meta/Google Lead Ads and internal ROAS tracking.
 - [ ] **Phase 25: Advanced Dashboard & Reporting**
+  - Comprehensive widgets for Financial, Sales, and Marketing metrics.
+  - Team performance tracking and leaderboards.
 
 ### Milestone 5: Public API & Webhooks (Completed)
 - [x] [Archived in v5-ROADMAP.md](./milestones/v5-ROADMAP.md)
