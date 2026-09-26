@@ -16,5 +16,5 @@ Businesses, B2B companies, and sales/ops teams needing an all-in-one CRM suite f
 - **File Storage**: Cloudflare R2 (S3 API)
 
 ## Current State
-- **Completed**: Milestones 4, 5, 7.
-- **Current Milestone**: Milestone 6: Core Billing & Financial Operations. Focus is on Document Management & Workflows, Public Document Links, Payments & Receipts, and Party Ledger.
+- **Completed**: Milestones 4, 5, 6, 7.
+- **Current Milestone**: Milestone 8: Marketing, Automations & Analytics. Focus is on Reminders & Automations, Catalogues & Ads, and Advanced Dashboard & Reporting.
