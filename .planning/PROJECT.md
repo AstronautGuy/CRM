@@ -16,5 +16,5 @@ Businesses, B2B companies, and sales/ops teams needing an all-in-one CRM suite f
 - **File Storage**: Cloudflare R2 (S3 API)
 
 ## Current State
-- **Completed**: Milestones 4, 5, 6, 7.
-- **Current Milestone**: Milestone 8: Marketing, Automations & Analytics. Focus is on Reminders & Automations, Catalogues & Ads, and Advanced Dashboard & Reporting.
+- **Completed**: Milestones 4, 5, 6, 7, 8 (Marketing, Automations & Analytics).
+- **Current Milestone**: Milestone 9: Platform Administration & Tenant Management. Focus is on global admin roles, tenant subscription management, billing tiers, and usage limits.
