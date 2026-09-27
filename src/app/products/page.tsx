@@ -5,6 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 
+import { Package, Plus } from "lucide-react";
+import { EmptyState } from "~/components/ui/empty-state";
+import { InfoTooltip } from "~/components/ui/tooltip-info";
+
 export default async function ProductsPage() {
   const session = await auth();
 
@@ -34,30 +38,46 @@ export default async function ProductsPage() {
             <CardTitle>Catalog Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="border-b border-slate-800 text-xs text-slate-400 uppercase bg-slate-950/50">
-                <tr>
-                  <th className="p-3">Product Name</th>
-                  <th className="p-3">SKU</th>
-                  <th className="p-3">Unit Price</th>
-                  <th className="p-3">Stock Quantity</th>
-                  <th className="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockProducts.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
-                    <td className="p-3 font-medium text-white">{p.name}</td>
-                    <td className="p-3 font-mono text-xs text-slate-400">{p.sku}</td>
-                    <td className="p-3 text-emerald-400 font-bold">{p.price}</td>
-                    <td className="p-3">{p.stock} units</td>
-                    <td className="p-3 text-right">
-                      <Button size="sm" variant="ghost">Edit Item</Button>
-                    </td>
+            {mockProducts.length === 0 ? (
+              <EmptyState
+                icon={Package}
+                title="No products found"
+                description="Your product catalog is empty. Add items to start generating quotes and invoices."
+                action={
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" /> Add Product / Service
+                  </Button>
+                }
+              />
+            ) : (
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="border-b border-slate-800 text-xs text-slate-400 uppercase bg-slate-950/50">
+                  <tr>
+                    <th className="p-3">Product Name</th>
+                    <th className="p-3">
+                      SKU
+                      <InfoTooltip content="Stock Keeping Unit: a unique identifier for this product/service." />
+                    </th>
+                    <th className="p-3">Unit Price</th>
+                    <th className="p-3">Stock Quantity</th>
+                    <th className="p-3 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {mockProducts.map((p) => (
+                    <tr key={p.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
+                      <td className="p-3 font-medium text-white">{p.name}</td>
+                      <td className="p-3 font-mono text-xs text-slate-400">{p.sku}</td>
+                      <td className="p-3 text-emerald-400 font-bold">{p.price}</td>
+                      <td className="p-3">{p.stock} units</td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit Item</Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </CardContent>
         </Card>
       </div>

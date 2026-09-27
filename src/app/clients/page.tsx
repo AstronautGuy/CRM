@@ -10,7 +10,9 @@ import { Badge } from "~/components/ui/badge";
 import { api } from "~/trpc/react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
-import { Users, Loader2 } from "lucide-react";
+import { Users, Loader2, Plus } from "lucide-react";
+import { EmptyState } from "~/components/ui/empty-state";
+import { InfoTooltip } from "~/components/ui/tooltip-info";
 
 export default function ContactsPage() {
   const { data: companies, isLoading, refetch } = api.crm.getCompanies.useQuery();
@@ -46,25 +48,28 @@ export default function ContactsPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : companies?.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 text-center">
-                <div className="bg-secondary h-16 w-16 rounded-full flex items-center justify-center mb-4">
-                  <Users className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No companies found</h3>
-                <p className="text-muted-foreground max-w-sm mb-6">
-                  Your customer database is currently empty. Add your first company to start building your CRM.
-                </p>
-                <Button asChild>
-                  <Link href="/clients/new">Add Your First Client</Link>
-                </Button>
-              </div>
+              <EmptyState
+                icon={Users}
+                title="No clients found"
+                description="Your customer database is currently empty. Add your first company to start building your CRM."
+                action={
+                  <Button asChild>
+                    <Link href="/clients/new">
+                      <Plus className="mr-2 h-4 w-4" /> Add Your First Client
+                    </Link>
+                  </Button>
+                }
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-foreground">
                   <thead className="border-b border-border text-xs text-muted-foreground uppercase bg-muted/50">
                     <tr>
                       <th className="p-3">Company Name</th>
-                      <th className="p-3">Industry</th>
+                      <th className="p-3">
+                        Industry
+                        <InfoTooltip content="The primary market or vertical this client operates in." />
+                      </th>
                       <th className="p-3">Country</th>
                       <th className="p-3 text-right">Actions</th>
                     </tr>

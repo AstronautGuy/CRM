@@ -28,6 +28,9 @@ import {
 } from "~/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 
+import { EmptyState } from "~/components/ui/empty-state";
+import { InfoTooltip } from "~/components/ui/tooltip-info";
+
 export default function InvoicesListPage() {
   const { data: invoices, isLoading, refetch } = api.billing.getInvoices.useQuery();
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
@@ -92,26 +95,39 @@ export default function InvoicesListPage() {
           <CardDescription>A list of all invoices across your tenant.</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Number</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Balance Due</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[80px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices?.length === 0 && (
+          {invoices?.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No invoices found"
+              description="You haven't created any invoices yet. Click below to create your first invoice."
+              action={
+                <Button asChild>
+                  <Link href="/billing/invoices/new">
+                    <Plus className="mr-2 h-4 w-4" /> New Invoice
+                  </Link>
+                </Button>
+              }
+            />
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center h-24 text-muted-foreground">
-                    No invoices found.
-                  </TableCell>
+                  <TableHead>Number</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>
+                    Balance Due
+                    <InfoTooltip content="The remaining amount unpaid on this invoice." />
+                  </TableHead>
+                  <TableHead>
+                    Status
+                    <InfoTooltip content="DRAFT: not sent. PROFORMA: estimated. SENT: awaiting payment. PAID: settled." />
+                  </TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
-              )}
+              </TableHeader>
+              <TableBody>
               {invoices?.map((invoice) => {
                 const formattedNumber = invoice.version > 1 
                   ? `${invoice.invoiceNumber}-v${invoice.version}` 
@@ -206,6 +222,7 @@ export default function InvoicesListPage() {
               })}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
       

@@ -17,6 +17,7 @@ const geist = Geist({
 });
 
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default async function RootLayout({
   children,
@@ -25,9 +26,11 @@ export default async function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body className="flex flex-col h-screen overflow-hidden">
         <TRPCReactProvider>
-          <div className="flex-1 overflow-hidden">
-            {children}
-          </div>
+          <TooltipProvider>
+            <div className="flex-1 overflow-hidden">
+              {children}
+            </div>
+          </TooltipProvider>
         </TRPCReactProvider>
         <Toaster />
       </body>
