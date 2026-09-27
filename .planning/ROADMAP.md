@@ -18,3 +18,6 @@
 
 ### Milestone 9: Platform Administration & Tenant Management (Completed)
 - [x] [Archived in v9-ROADMAP.md](./milestones/v9-ROADMAP.md)
+
+### Milestone 10: Finalization & Deployment (Completed)
+- [x] [Archived in v10-ROADMAP.md](./milestones/v10-ROADMAP.md)
