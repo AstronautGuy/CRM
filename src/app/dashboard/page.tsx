@@ -14,6 +14,7 @@ import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Badge } from "~/components/ui/badge";
+import { useTour } from "~/hooks/use-tour";
 import { WelcomeModal } from "./_components/WelcomeModal";
 import { SetupChecklist } from "./_components/SetupChecklist";
 function KPICard({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) {
@@ -38,6 +39,19 @@ export default function DashboardPage() {
   
   const { widgets, toggleWidget, resetLayout } = useDashboardStore();
   const [customizeOpen, setCustomizeOpen] = useState(false);
+
+  const dashboardTourSteps = [
+    { element: "#tour-checklist", popover: { title: "Setup Checklist", description: "This is your getting started checklist. Complete these to set up your CRM.", side: "bottom" } },
+    { element: "#tour-customize", popover: { title: "Customize Layout", description: "You can toggle widgets on and off to personalize your dashboard view.", side: "bottom" } },
+  ];
+  const { startTour, forceStartTour } = useTour(dashboardTourSteps, "dashboard");
+
+  // Run on mount
+  React.useEffect(() => {
+    // Slight delay so DOM has time to render
+    const t = setTimeout(() => startTour(), 500);
+    return () => clearTimeout(t);
+  }, []);
 
   const renderWidget = (id: string) => {
     switch (id) {
@@ -105,7 +119,9 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="flex flex-col gap-8 p-4 md:p-8">
         <WelcomeModal />
-        <SetupChecklist />
+        <div id="tour-checklist">
+          <SetupChecklist />
+        </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -113,9 +129,12 @@ export default function DashboardPage() {
             <p className="text-muted-foreground">Comprehensive insights across your organization.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={forceStartTour}>
+              Take a Tour
+            </Button>
             <Popover open={customizeOpen} onOpenChange={setCustomizeOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" id="tour-customize">
                   <Settings2 className="w-4 h-4 mr-2" />
                   Customize Layout
                 </Button>

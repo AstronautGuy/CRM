@@ -10,12 +10,24 @@ import { Badge } from "~/components/ui/badge";
 import { api } from "~/trpc/react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
-import { Users, Loader2, Plus } from "lucide-react";
+import { Users, Loader2, Plus, Info } from "lucide-react";
 import { EmptyState } from "~/components/ui/empty-state";
 import { InfoTooltip } from "~/components/ui/tooltip-info";
+import { useTour } from "~/hooks/use-tour";
 
 export default function ContactsPage() {
   const { data: companies, isLoading, refetch } = api.crm.getCompanies.useQuery();
+
+  const crmTourSteps = [
+    { element: "#tour-add-client", popover: { title: "Add Client", description: "Click here to add a new organization or contact to your CRM.", side: "bottom" } },
+    { element: "#tour-search", popover: { title: "Search & Filter", description: "Use this search bar to quickly find clients by name or email.", side: "bottom" } },
+  ];
+  const { startTour, forceStartTour } = useTour(crmTourSteps, "crm");
+
+  React.useEffect(() => {
+    const t = setTimeout(() => startTour(), 500);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <DashboardLayout>
@@ -26,14 +38,17 @@ export default function ContactsPage() {
             <p className="text-muted-foreground text-sm">Manage organization leads, customer accounts, and qualification status.</p>
           </div>
           <div className="flex gap-3">
+            <Button variant="ghost" onClick={forceStartTour}>
+              <Info className="w-4 h-4 mr-2" /> Tour this page
+            </Button>
             <Button variant="outline">Import CSV</Button>
-            <Button asChild>
+            <Button asChild id="tour-add-client">
               <Link href="/clients/new">+ Add Client</Link>
             </Button>
           </div>
         </div>
 
-        <div className="flex gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
+        <div className="flex gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm" id="tour-search">
           <Input placeholder="Search contacts by name, email or job title..." className="max-w-md bg-background border-border" />
           <Button variant="secondary" size="sm">Filter by Status</Button>
         </div>
