@@ -14,6 +14,7 @@ declare module "next-auth" {
     user: {
       id: string;
       systemRole: "SUPER_ADMIN" | "USER";
+      organizationId: string;
     } & DefaultSession["user"];
   }
 

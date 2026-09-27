@@ -354,7 +354,7 @@ export const billingRouter = createTRPCRouter({
       
       // Temporary dummy till actual invoice insert is implemented
       if (input.invoiceNumber) {
-         await saveDocumentPattern(ctx.db, member.organizationId, "INVOICE").catch(console.error);
+         await saveDocumentPattern(ctx, member.organizationId, ctx.session.user.id, "invoice", input.invoiceNumber, input.companyId).catch(console.error);
       }
 
       // INVENTORY DEDUCTION LOGIC
@@ -436,7 +436,7 @@ export const billingRouter = createTRPCRouter({
       invoiceId: z.string(),
       amount: z.number(),
       paymentDate: z.date(),
-      paymentMethod: z.string(),
+      paymentMethod: z.enum(["BANK_TRANSFER", "CREDIT_CARD", "CASH", "CHECK"]),
       referenceNumber: z.string().optional(),
       notes: z.string().optional(),
     }))
@@ -618,8 +618,7 @@ export const billingRouter = createTRPCRouter({
       const closingBalance = currentBalance;
 
       // 3. Generate Statement Number
-      const num = await saveDocumentPattern(ctx.db, member.organizationId, "STATEMENT");
-      const statementNumber = `STMT-${num.toString().padStart(4, "0")}`;
+      const statementNumber = `STMT-${Date.now().toString().slice(-4)}`;
 
       // 4. Save Statement Snapshot
       const [statement] = await ctx.db.insert(statements).values({
