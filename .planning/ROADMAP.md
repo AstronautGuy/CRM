@@ -22,7 +22,7 @@
 ### Milestone 10: Finalization & Deployment (Completed)
 - [x] [Archived in v10-ROADMAP.md](./milestones/v10-ROADMAP.md)
 
-### Milestone 11: User Onboarding & Experience Polish (Current)
-- [ ] **Phase 30: Welcome Flow & Setup Checklist**
-- [ ] **Phase 31: Empty States & Contextual Help**
-- [ ] **Phase 32: Interactive Guided Tour**
+### Milestone 11: User Onboarding & Experience Polish (Completed)
+- [x] **Phase 30: Welcome Flow & Setup Checklist**
+- [x] **Phase 31: Empty States & Contextual Help**
+- [x] **Phase 32: Interactive Guided Tour**
