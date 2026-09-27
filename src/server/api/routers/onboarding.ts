@@ -10,6 +10,56 @@ export const onboardingRouter = createTRPCRouter({
     });
     return {
       onboardingComplete: user?.onboardingComplete ?? false,
+      hasSeenWelcome: user?.hasSeenWelcome ?? false,
+    };
+  }),
+
+  markWelcomeSeen: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db
+      .update(users)
+      .set({ hasSeenWelcome: true })
+      .where(eq(users.id, ctx.session.user.id));
+    return { success: true };
+  }),
+
+  getSetupProgress: protectedProcedure.query(async ({ ctx }) => {
+    // Get user and member org
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.session.user.id),
+    });
+    const member = await ctx.db.query.organizationMembers.findFirst({
+      where: eq(organizationMembers.userId, ctx.session.user.id),
+    });
+    
+    let hasProducts = false;
+    let hasLeads = false;
+
+    if (member?.organizationId) {
+      // Check if they have created any products
+      const productsList = await ctx.db.query.products.findMany({
+        where: eq(products.organizationId, member.organizationId),
+        limit: 1,
+      });
+      hasProducts = productsList.length > 0;
+
+      // Check if they have created any leads
+      const leadsList = await ctx.db.query.crmLeads.findMany({
+        where: eq(crmLeads.organizationId, member.organizationId),
+        limit: 1,
+      });
+      hasLeads = leadsList.length > 0;
+    }
+
+    const hasProfile = !!(user?.name && user?.phone);
+
+    return {
+      hasSeenWelcome: user?.hasSeenWelcome ?? false,
+      steps: {
+        profile: hasProfile,
+        products: hasProducts,
+        leads: hasLeads,
+      },
+      isFullyComplete: hasProfile && hasProducts && hasLeads,
     };
   }),
 

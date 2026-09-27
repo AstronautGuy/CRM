@@ -14,7 +14,8 @@ import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Badge } from "~/components/ui/badge";
-
+import { WelcomeModal } from "./_components/WelcomeModal";
+import { SetupChecklist } from "./_components/SetupChecklist";
 function KPICard({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) {
   return (
     <Card>
@@ -103,18 +104,8 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-8 p-4 md:p-8">
-        {onboardingStatus?.requiresSetup && (
-          <Alert className="bg-primary/5 border-primary/20 text-primary">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Welcome to DevCRM!</AlertTitle>
-            <AlertDescription className="flex items-center justify-between mt-2">
-              <span>Your account requires some initial setup before you can fully utilize all features.</span>
-              <Button asChild variant="outline" size="sm" className="ml-4">
-                <Link href="/onboarding">Complete Setup <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
+        <WelcomeModal />
+        <SetupChecklist />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>

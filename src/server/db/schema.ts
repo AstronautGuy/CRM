@@ -32,6 +32,7 @@ export const users = createTable("user", (d) => ({
   passwordHash: d.text(),
   systemRole: userRoleEnum("system_role").default("USER").notNull(),
   onboardingComplete: d.boolean().default(false).notNull(),
+  hasSeenWelcome: d.boolean().default(false).notNull(),
   createdAt: d.timestamp({ withTimezone: true }).$defaultFn(() => new Date()).notNull(),
   updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 }));
