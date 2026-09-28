@@ -30,12 +30,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 
 import { EmptyState } from "~/components/ui/empty-state";
 import { InfoTooltip } from "~/components/ui/tooltip-info";
+import { useTour } from "~/hooks/use-tour";
+import { FileText, Info } from "lucide-react";
 
 export default function InvoicesListPage() {
   const { data: invoices, isLoading, refetch } = api.billing.getInvoices.useQuery();
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
   const [viewPaymentsDialogOpen, setViewPaymentsDialogOpen] = React.useState(false);
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = React.useState<any>(null);
+
+  const invoiceTourSteps = [
+    { element: "#tour-new-invoice", popover: { title: "Create Invoice", description: "Click here to generate a new invoice or quote for your clients.", side: "bottom" } },
+  ];
+  const { startTour, forceStartTour } = useTour(invoiceTourSteps, "invoices");
+
+  React.useEffect(() => {
+    const t = setTimeout(() => startTour(), 500);
+    return () => clearTimeout(t);
+  }, []);
 
   const deleteMutation = api.billing.deleteInvoice.useMutation({
     onSuccess: () => {
@@ -81,12 +93,17 @@ export default function InvoicesListPage() {
             Manage your billing invoices and proformas.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/billing/invoices/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Invoice
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={forceStartTour}>
+            <Info className="w-4 h-4 mr-2" /> Tour this page
+          </Button>
+          <Button asChild id="tour-new-invoice">
+            <Link href="/billing/invoices/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Invoice
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
